@@ -6,6 +6,7 @@ import com.example.EMR.Service.EmrService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
@@ -21,6 +22,7 @@ public class EmrController {
     }
 
     @GetMapping("/getPrescriptionByEmrId/{emrId}")
+    @PreAuthorize("hasAuthority('admin:update')")
     public ResponseEntity<InputStreamResource> getPrescriptionsEmrId(@PathVariable("emrId") UUID emrId) throws FileNotFoundException{
         System.out.println("Returning EMR BY ID");
         return emrService.getPrescriptionByEmrId(emrId);
