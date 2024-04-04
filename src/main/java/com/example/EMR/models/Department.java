@@ -55,4 +55,11 @@ public class Department {
         this.noOfDoctors = noOfDoctors;
         this.noOfNurses = noOfNurses;
     }
+
+    public Department orElseThrow(Department department) throws Exception {
+        if (department == null) {
+            throw new Exception("Department not found"); // YourException should be replaced with the appropriate exception type
+        }
+        return department;
+    }
 }
