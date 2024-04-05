@@ -38,6 +38,8 @@ public class SecurityConfiguration {
                                .requestMatchers("/emr/insertNewEmr").hasAnyAuthority(PATIENT_CREATE.getPermission())
                                .requestMatchers("/emr/updateEmrById/{emrId}").hasAnyAuthority(PATIENT_UPDATE.getPermission())
                                .requestMatchers("/emr/deleteEmrByPatientId/{patientId}").hasAnyAuthority(PATIENT_DELETE.getPermission())
+                               .requestMatchers("/consultation/addConsultation").hasAnyAuthority(ADMIN_CREATE.getPermission())
+                               .requestMatchers("/consultation/getAllConsultation").hasAnyAuthority(ADMIN_READ.getPermission())
                                .anyRequest()
                                .authenticated()
                )

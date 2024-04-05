@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Redis name="Redis" host="localhost" port="6379">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Redis>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Redis"/>
+        </Root>
+    </Loggers>
+</Configuration>
