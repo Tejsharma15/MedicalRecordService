@@ -40,6 +40,7 @@ public class SecurityConfiguration {
                                .requestMatchers("/emr/deleteEmrByPatientId/{patientId}").hasAnyAuthority(PATIENT_DELETE.getPermission())
                                .requestMatchers("/consultation/addConsultation").hasAnyAuthority(ADMIN_CREATE.getPermission())
                                .requestMatchers("/consultation/getAllConsultation").hasAnyAuthority(ADMIN_READ.getPermission())
+                               .requestMatchers("/emr/getEmrByPatientId/{patientId}").hasAnyAuthority(PATIENT_READ.getPermission())
                                .anyRequest()
                                .authenticated()
                )

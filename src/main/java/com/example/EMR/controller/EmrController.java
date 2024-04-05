@@ -24,18 +24,23 @@ public class EmrController {
     @GetMapping("/getPrescriptionByEmrId/{emrId}")
     @PreAuthorize("hasAuthority('prescription:read') or hasAuthority('patient:read')")
     public ResponseEntity<InputStreamResource> getPrescriptionsEmrId(@PathVariable("emrId") UUID emrId) throws FileNotFoundException{
-        System.out.println("Returning EMR BY ID");
+        System.out.println("Returning Prescription BY ID");
         return emrService.getPrescriptionByEmrId(emrId);
     }
 
     @GetMapping("/getCommentsByEmrId/{emrId}")
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<InputStreamResource> getCommentsByEmrId(@PathVariable("emrId") UUID emrId) throws FileNotFoundException {
-        System.out.println("Returning EMR BY ID");
+        System.out.println("Returning Comments BY ID");
         return emrService.getCommentsByEmrId(emrId);
     }
 
-
+    @GetMapping("/getEmrByPatientId/{patientId}")
+    @PreAuthorize("hasAuthority('patient:read')")
+    public ResponseEntity<byte[]> getEmrByPatientId(@PathVariable("patientId") UUID patientId) throws FileNotFoundException{
+        System.out.println("Returning EMR");
+        return emrService.getEmrByPatientId(patientId);
+    }
     @PostMapping("/insertNewEmr")
     @PreAuthorize("hasAuthority('patient:write')")
     public ResponseEntity<?> insertNewEmr(@ModelAttribute EmrDto emrDto){

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -29,4 +30,7 @@ public interface EmrRepository extends JpaRepository<Emr,UUID> {
 
     @Query("SELECT e.patientId FROM Emr e WHERE e.publicEmrId = :emrId")
     UUID getPatientIdByEmrId(UUID emrId);
+
+    @Query("SELECT e.publicEmrId FROM Emr e WHERE e.patientId = :patientId")
+    List<UUID> getEmrByPatientId(UUID patientId);
 }

@@ -1,13 +1,9 @@
 package com.example.EMR.dto;
 
-import java.sql.Blob;
-import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 
 public class EmrRequestDto {
+    private MultipartFile comments;
+    private MultipartFile prescription;
 
-    private UUID patientId;
-    private String accessDepartments;
-    private Blob comments;
-    private Blob prescription;
-    private String accessList;
 }

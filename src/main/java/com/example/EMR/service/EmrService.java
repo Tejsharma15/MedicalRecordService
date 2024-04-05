@@ -4,9 +4,9 @@ import com.example.EMR.dto.EmrDto;
 import com.example.EMR.dto.UpdateEmrDto;
 import com.example.EMR.models.Document;
 import com.example.EMR.models.Emr;
+import com.example.EMR.property.DocumentStorageProperty;
 import com.example.EMR.repository.DocumentRepository;
 import com.example.EMR.repository.EmrRepository;
-import com.example.EMR.property.DocumentStorageProperty;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -17,13 +17,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 @Service
 @Transactional
@@ -67,6 +66,71 @@ public class EmrService {
         return ResponseEntity.ok()
                 .headers(header)
                 .body(resource);
+    }
+
+    public ResponseEntity<byte[]> getEmrByPatientId(UUID patientId) throws FileNotFoundException {
+        List<UUID> publicEmrId = emrRepository.getEmrByPatientId(patientId);
+        System.out.println("Calling the database for fetching emr by public id");
+
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        List<InputStream> inputStreams = new ArrayList<>();
+
+        try {
+            for (UUID emrId : publicEmrId) {
+                String prescriptionHash = emrRepository.findPrescriptionHash(emrId);
+                String commentHash = emrRepository.findCommentHash(emrId);
+
+                File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + patientId.toString() + "/" + prescriptionHash);
+                File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + patientId.toString() + "/" + commentHash);
+
+                InputStream prescriptionInputStream = new FileInputStream(prescription);
+                InputStream commentInputStream = new FileInputStream(comment);
+
+                inputStreams.add(prescriptionInputStream);
+                inputStreams.add(commentInputStream);
+            }
+        } catch (FileNotFoundException e) {
+            // Handle file not found exception
+            throw new RuntimeException(e);
+        }
+
+        // Combine all InputStreams into one byte array
+        byte[] combinedBytes = combineInputStreams(inputStreams);
+
+        // Return ResponseEntity with byte array and headers
+        return new ResponseEntity<>(combinedBytes, header, HttpStatus.OK);
+    }
+
+    private byte[] combineInputStreams(List<InputStream> inputStreams) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+
+        try {
+            for (InputStream inputStream : inputStreams) {
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error combining InputStreams", e);
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+            for (InputStream inputStream : inputStreams) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+        }
+        return outputStream.toByteArray();
     }
 
     private void storeDocument(MultipartFile file, Path targetLocation, String hash) throws IOException{
@@ -140,6 +204,7 @@ public class EmrService {
         emrRepository.save(obj);
         return obj.getPublicEmrId();
     }
+
     public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
         UUID id = updateEmrDto.getPublicEmrId();
         System.out.println("Updating the emr by the id" + id);
