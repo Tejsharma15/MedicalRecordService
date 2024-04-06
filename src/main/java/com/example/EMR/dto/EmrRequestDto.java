@@ -5,5 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 public class EmrRequestDto {
     private MultipartFile comments;
     private MultipartFile prescription;
-
+    private MultipartFile tests;
 }

@@ -53,6 +53,21 @@ public class EmrService {
                 .body(resource);
     }
 
+    public ResponseEntity<InputStreamResource> getTestsByEmrId(UUID publicEmrId) throws FileNotFoundException {
+        System.out.println("Calling the database for fetching emr by public id");
+        String hash = emrRepository.findPrescriptionHash(publicEmrId);
+        File prescription = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + hash);
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        header.setContentDispositionFormData("attachment", prescription.getName());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(prescription));
+
+        // Return ResponseEntity with InputStreamResource and headers
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(resource);
+    }
+
     public ResponseEntity<InputStreamResource> getCommentsByEmrId(UUID publicEmrId) throws FileNotFoundException {
         System.out.println("Calling the database for fetching emr by public id");
         String hash = emrRepository.findCommentHash(publicEmrId);
@@ -81,15 +96,19 @@ public class EmrService {
             for (UUID emrId : publicEmrId) {
                 String prescriptionHash = emrRepository.findPrescriptionHash(emrId);
                 String commentHash = emrRepository.findCommentHash(emrId);
+                String testHash = emrRepository.findTestHash(emrId);
 
                 File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + patientId.toString() + "/" + prescriptionHash);
                 File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + patientId.toString() + "/" + commentHash);
+                File test = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + patientId.toString() + "/" + testHash);
 
                 InputStream prescriptionInputStream = new FileInputStream(prescription);
                 InputStream commentInputStream = new FileInputStream(comment);
+                InputStream testInputStream = new FileInputStream(test);
 
                 inputStreams.add(prescriptionInputStream);
                 inputStreams.add(commentInputStream);
+                inputStreams.add(testInputStream);
             }
         } catch (FileNotFoundException e) {
             // Handle file not found exception
@@ -163,12 +182,22 @@ public class EmrService {
                 Path commentLocation = this.emrStorageLocation.resolve("Comments/" + emrDto.getPatientId());
                 storeDocument(comments, commentLocation, comment.getHash());
 
+                MultipartFile tests = emrDto.getTests();
+                Document test = new Document();
+                test.setMimeType(tests.getContentType());
+                test.setName(tests.getOriginalFilename());
+                test.setSize(tests.getSize());
+                test.setHash();
+                Path testLocation = this.emrStorageLocation.resolve("tests/" + emrDto.getPatientId());
+                storeDocument(tests, testLocation, test.getHash());
+
 
                 Emr obj = new Emr();
                 obj.setPatientId(emrDto.getPatientId());
                 obj.setAccessDepartments(emrDto.getAccessDepartments());
                 obj.setAccessList(emrDto.getAccessList());
                 obj.setComments(comment.getHash());
+                obj.setTests(test.getHash());
                 obj.setPrescription(document.getHash());
                 obj.setPublicEmrId(UUID.randomUUID());
                 obj.setLastUpdate(System.currentTimeMillis() / 1000);
@@ -180,6 +209,7 @@ public class EmrService {
                 documentRepository.save(document);
 //                comment.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
                 documentRepository.save(comment);
+                documentRepository.save(test);
 
                 return ResponseEntity.status(HttpStatus.OK)
                         .body("EMR ID: " + obj.getPublicEmrId());
@@ -218,12 +248,9 @@ public class EmrService {
                 document.setHash();
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDto.getPatientId());
                 storeDocument(prescriptions, prescriptionLocation, document.getHash());
-
-
-//                document.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
                 documentRepository.save(document);
             } catch (IOException | NoSuchAlgorithmException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
             }
         }
         if(updateEmrDto.getComments() != null) {
@@ -239,9 +266,25 @@ public class EmrService {
                 documentRepository.save(comment);
 //                comment.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
             } catch (IOException | NoSuchAlgorithmException e){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
             }
         }
+        if(updateEmrDto.getTests() != null) {
+            try{
+                MultipartFile tests = updateEmrDto.getTests();
+                Document test = new Document();
+                test.setName(tests.getOriginalFilename());
+                test.setMimeType(tests.getContentType());
+                test.setSize(tests.getSize());
+                test.setHash();
+                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDto.getPatientId());
+                storeDocument(tests, commentLocation, test.getHash());
+                documentRepository.save(test);
+            } catch (IOException | NoSuchAlgorithmException e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
+            }
+        }
+
         try{
             System.out.println("Updating values as: " + updateEmrDto.getAccessList()+" "+updateEmrDto.getAccessDepartments() + updateEmrDto.getPublicEmrId());
             emrRepository.updateVals(updateEmrDto.getAccessList(), updateEmrDto.getAccessDepartments(), updateEmrDto.getPublicEmrId());
@@ -255,7 +298,7 @@ public class EmrService {
     public ResponseEntity<String> deleteEmrByPatientId(UUID patientId) {
         Path commentsPath = Paths.get(this.emrStorageLocation + "/Comments/" + patientId.toString());
         Path prescriptionsPath = Paths.get(this.emrStorageLocation + "/Prescriptions/" + patientId.toString());
-
+        Path testsPath = Paths.get(this.emrStorageLocation + "/Tests/" + patientId.toString());
         try {
             if (Files.exists(commentsPath)) {
                 Files.walkFileTree(commentsPath, new SimpleFileVisitor<Path>() {
@@ -288,7 +331,21 @@ public class EmrService {
                     }
                 });
             }
+            if (Files.exists(testsPath)) {
+                Files.walkFileTree(testsPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
             // Now that directories are empty, delete them
             emrRepository.deleteByPatientId(patientId);
         } catch (IOException e) {

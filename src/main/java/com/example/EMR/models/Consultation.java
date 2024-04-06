@@ -30,16 +30,16 @@ public class Consultation {
 //    @MapsId("patientId")
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "patientId", referencedColumnName = "patientId", updatable = false)
+    @JoinColumn(name = "patientId", referencedColumnName = "patientId", unique = false)
     private Patient patient;
 
 //    @MapsId("employeeId")
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "employeeId", referencedColumnName = "employeeId", updatable = false)
+    @JoinColumn(name = "employeeId", referencedColumnName = "employeeId", unique = false)
     private User doctor;
 
 
-    @Column(name="EMRID",updatable = false,nullable = false)
+    @Column(name="EMRID", unique = true)
     private UUID emrId;
 }

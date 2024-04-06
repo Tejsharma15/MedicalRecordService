@@ -15,6 +15,9 @@ public interface EmrRepository extends JpaRepository<Emr,UUID> {
     @Query("SELECT e.comments FROM Emr e WHERE e.publicEmrId = :emrId")
     String findCommentHash(UUID emrId);
 
+    @Query("SELECT e.tests FROM Emr e WHERE e.publicEmrId = :emrId")
+    String findTestHash(UUID emrId);
+
     @Query("SELECT e.prescription FROM Emr e WHERE e.publicEmrId = :emrId")
     String findPrescriptionHash(UUID emrId);
     @Modifying

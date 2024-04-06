@@ -12,5 +12,6 @@ public class EmrDto implements Serializable {
     private String accessDepartments;
     private MultipartFile comments;
     private MultipartFile prescription;
+    private MultipartFile tests;
     private String accessList;
 }

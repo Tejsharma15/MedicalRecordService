@@ -29,6 +29,9 @@ public class Emr {
     private Long lastUpdate;
     @Column(name = "prescription")
     private String prescription;
+    @Column(name = "tests")
+    private String tests;
+
     @Column(name = "accessList", nullable = false)
     private String accessList;
 
