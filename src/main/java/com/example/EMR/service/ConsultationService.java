@@ -49,8 +49,8 @@ public class ConsultationService {
     public ConsultationRequestDto convertConsultationToRequestDto(Consultation obj){
         ConsultationRequestDto consultationRequestDto = new ConsultationRequestDto();
         consultationRequestDto.setPublicEmrId(obj.getEmrId());
-        consultationRequestDto.setPatientId(obj.getPatientId());
-        consultationRequestDto.setDoctorId(obj.getDoctorId());
+        consultationRequestDto.setPatientId(obj.getPatient().getPatientId());
+        consultationRequestDto.setDoctorId(obj.getDoctor().getEmployeeId());
         return consultationRequestDto;
     }
     public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException{
@@ -101,7 +101,7 @@ public class ConsultationService {
         if(obj.isEmpty()){
             throw new ResourceNotFoundException("No consultation found for the id: "+ consultationId.toString());
         }
-        ConsultationRequestDto consultationRequestDto = convertConsultationToRequestDto(obj);
+        ConsultationRequestDto consultationRequestDto = convertConsultationToRequestDto(obj.get());
         return ResponseEntity.ok(consultationRequestDto);
     }
 }
