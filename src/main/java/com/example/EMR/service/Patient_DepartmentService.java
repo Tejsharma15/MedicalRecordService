@@ -1,5 +1,6 @@
 package com.example.EMR.service;
 
+import com.example.EMR.Exception.ResourceNotFoundException;
 import com.example.EMR.models.CompositePrimaryKeys.Patient_DepartmentId;
 import com.example.EMR.models.Department;
 import com.example.EMR.models.Patient;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,16 +28,17 @@ public class Patient_DepartmentService {
         this.patientDepartmentRepository = patientDepartmentRepository;
     }
     public void addPatient_Department(UUID patientId, UUID departmentId) {
-        Patient patient = patientRepository.findPatientById(patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Patient not exist with id " + patientId));
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not exist with id " + patientId));
 
-        Department department = departmentRepository.findDepartmentById(departmentId).orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        Department department = departmentRepository.findById(departmentId).orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + departmentId));
 
         Patient_DepartmentId id = new Patient_DepartmentId(patientId, departmentId);
 
         if (patientDepartmentRepository.existsById(id)) {
-            throw new IllegalArgumentException(
-                    "The relationship between the patient and the department already exists");
+//            throw new ResourceNotFoundException(
+//                    "The relationship between the patient and the department already exists");
+            return;
         }
 
         Patient_Department patientDepartment = new Patient_Department();

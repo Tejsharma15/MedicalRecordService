@@ -24,8 +24,8 @@ public class ConsultationController {
     }
 
     @PostMapping("/addConsultation")
-    @PreAuthorize("hasAuthority('admin:create')")
-    public ResponseEntity<String>addConsultation(@RequestBody ConsultationDto consultationdto){
+    @PreAuthorize("hasAuthority('admin:create') or hasAuthority('desk:create')")
+    public ResponseEntity<?>addConsultation(@RequestBody ConsultationDto consultationdto){
         System.out.println("Adding consultation");
         return consultationService.addConsultation(consultationdto);
     }

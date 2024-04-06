@@ -24,7 +24,7 @@ public class ApplicationConfig
     public UserDetailsService userDetailsService()
     {
         return employeeId -> {
-            return repository.findByEmployeeId(UUID.fromString(employeeId))
+            return repository.findById(UUID.fromString(employeeId))
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         };
     }

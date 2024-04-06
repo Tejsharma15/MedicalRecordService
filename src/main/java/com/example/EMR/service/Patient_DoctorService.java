@@ -1,5 +1,6 @@
 package com.example.EMR.service;
 
+import com.example.EMR.Exception.ResourceNotFoundException;
 import com.example.EMR.models.CompositePrimaryKeys.Patient_DoctorId;
 import com.example.EMR.models.Patient;
 import com.example.EMR.models.Patient_Doctor;
@@ -29,14 +30,15 @@ public class Patient_DoctorService {
     public void addPatient_Doctor(UUID patientId, UUID doctorId) {
         // Check if the patient and doctor exist
         User doctor = employeeRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalArgumentException("Doctor not exist with id " + doctorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not exist with id " + doctorId));
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Patient not exist with id " + patientId));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not exist with id " + patientId));
 
         // Check if the relationship already exists
         Patient_DoctorId id = new Patient_DoctorId(patientId, doctorId);
         if (patientDoctorRepository.existsById(id)) {
-            throw new IllegalArgumentException("The relationship between the patient and the doctor already exists");
+//            throw new IllegalArgumentException("The relationship between the patient and the doctor already exists");
+            return;
         }
 
         // Create a new relationship and save it

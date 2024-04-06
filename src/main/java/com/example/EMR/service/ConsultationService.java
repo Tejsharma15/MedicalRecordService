@@ -1,5 +1,6 @@
 package com.example.EMR.service;
 
+import com.example.EMR.Exception.ResourceNotFoundException;
 import com.example.EMR.dto.ConsultationDto;
 import com.example.EMR.dto.EmrDto;
 import com.example.EMR.models.Consultation;
@@ -12,6 +13,7 @@ import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,10 +44,10 @@ public class ConsultationService {
         this.employeeDepartmentRepository = employeeDepartmentRepository;
     }
 
-        public ResponseEntity<?> addConsultation(ConsultationDto consultationdto){
+        public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException{
     
-            User doctor = userRepository.findByEmployeeId(consultationdto.getDoctorId()).orElseThrow(() -> new IllegalArgumentException("Doctor not found"));
-            Patient patient = patientRepository.findPatientById(consultationdto.getPatientId()).orElseThrow(() -> new IllegalArgumentException("Patient not found"));
+            User doctor = userRepository.findById(consultationdto.getDoctorId()).orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+            Patient patient = patientRepository.findById(consultationdto.getPatientId()).orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
     
             Consultation consultation = new Consultation();
             consultation.setDoctor(doctor);
