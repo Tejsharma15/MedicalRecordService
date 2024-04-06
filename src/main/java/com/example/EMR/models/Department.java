@@ -1,7 +1,6 @@
 package com.example.EMR.models;
 
 
-import com.example.EMR.converter.StringCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,11 +28,11 @@ public class Department {
     @Column(name = "departmentId", updatable = false, nullable = false)
     private UUID departmentId;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false)
     private String departmentName;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false)
     private String departmentHead;
 

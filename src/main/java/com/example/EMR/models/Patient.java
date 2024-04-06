@@ -1,6 +1,5 @@
 package com.example.EMR.models;
 
-import com.example.EMR.converter.StringCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,22 +42,22 @@ public class Patient
     @Column(name="patientId",updatable = false, nullable = false )
     private UUID patientId;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "Name", nullable = false )
     private String name;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "aabhaId", nullable = false )
     private String aabhaId;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "emailId", nullable = false )
     private String emailId;
 
     @Column(name = "DateOfBirth", nullable = false )
     private String dateOfBirth;
 
-    @Convert(converter = StringCryptoConverter.class)
+//    @Convert(converter = StringCryptoConverter.class)
     @Column(name="Emergency Contact Number",nullable = false)
     private String emergencyContactNumber;
 
