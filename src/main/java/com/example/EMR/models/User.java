@@ -1,5 +1,6 @@
 package com.example.EMR.models;
 
+import com.example.EMR.converter.StringCryptoConverter;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,15 +41,21 @@ public class User implements UserDetails {
     @Column(name = "employeeId", updatable = false, nullable = false)
     private UUID employeeId;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "Name", nullable = false)
     private String name;
 
     @Column(name = "DateOfBirth", nullable = false)
     private String dateOfBirth;
 
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(name = "emailId", nullable = false)
+    private String emailId;
+
     @Column(name = "Password", nullable = false)
     private String password;
 
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "LastCheckIn")
     private String lastCheckIn;
 
