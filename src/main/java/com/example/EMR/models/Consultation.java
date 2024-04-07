@@ -29,13 +29,13 @@ public class Consultation {
 
 //    @MapsId("patientId")
     @ManyToOne
-    @JsonIgnore
+    // @JsonIgnore
     @JoinColumn(name = "patientId", referencedColumnName = "patientId", unique = false)
     private Patient patient;
 
 //    @MapsId("employeeId")
     @ManyToOne
-    @JsonIgnore
+    // @JsonIgnore
     @JoinColumn(name = "employeeId", referencedColumnName = "employeeId", unique = false)
     private User doctor;
 
