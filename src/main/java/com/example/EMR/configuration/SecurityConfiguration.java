@@ -39,7 +39,7 @@ public class SecurityConfiguration {
                                .requestMatchers("/emr/updateEmrById/{emrId}").hasAnyAuthority(PATIENT_UPDATE.getPermission())
                                .requestMatchers("/emr/deleteEmrByPatientId/{patientId}").hasAnyAuthority(PATIENT_DELETE.getPermission())
                                .requestMatchers("/emr/getEmrByPatientId/{patientId}").hasAnyAuthority(PATIENT_READ.getPermission())
-                               .requestMatchers("/consultation/addConsultation").hasAnyAuthority(ADMIN_CREATE.getPermission())
+                               .requestMatchers("/consultation/addConsultation").hasAnyAuthority(ADMIN_CREATE.getPermission(), DESK_CREATE.getPermission())
                                .requestMatchers("/consultation/getAllConsultation").hasAnyAuthority(ADMIN_READ.getPermission())
                                .requestMatchers("/consultation/getConsultationById/{consultationId}").hasAnyAuthority(ADMIN_READ.getPermission())
                                .anyRequest()

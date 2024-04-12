@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 
+import com.example.EMR.converter.StringCryptoConverter;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -28,11 +30,11 @@ public class Department {
     @Column(name = "departmentId", updatable = false, nullable = false)
     private UUID departmentId;
 
-//    @Convert(converter = StringCryptoConverter.class)
+   @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false)
     private String departmentName;
 
-//    @Convert(converter = StringCryptoConverter.class)
+   @Convert(converter = StringCryptoConverter.class)
     @Column(nullable = false)
     private String departmentHead;
 
