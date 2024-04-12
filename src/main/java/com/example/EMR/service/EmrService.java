@@ -19,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -166,7 +168,7 @@ public class EmrService {
             try {
                 MultipartFile prescriptions = emrDto.getPrescription();
                 Document document = new Document();
-                document.setName(prescriptions.getOriginalFilename());
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + emrDto.getPatientId().toString() + prescriptions.getOriginalFilename());
                 document.setMimeType(prescriptions.getContentType());
                 document.setSize(prescriptions.getSize());
                 document.setHash();
@@ -175,7 +177,7 @@ public class EmrService {
 
                 MultipartFile comments = emrDto.getComments();
                 Document comment = new Document();
-                comment.setName(comments.getOriginalFilename());
+                comment.setName(this.emrStorageLocation.toString() + "/Comments/" + emrDto.getPatientId().toString() + comments.getOriginalFilename());
                 comment.setMimeType(comments.getContentType());
                 comment.setSize(comments.getSize());
                 comment.setHash();
@@ -185,10 +187,10 @@ public class EmrService {
                 MultipartFile tests = emrDto.getTests();
                 Document test = new Document();
                 test.setMimeType(tests.getContentType());
-                test.setName(tests.getOriginalFilename());
+                test.setName(this.emrStorageLocation.toString() + "/Tests/" + emrDto.getPatientId().toString() + tests.getOriginalFilename());
                 test.setSize(tests.getSize());
                 test.setHash();
-                Path testLocation = this.emrStorageLocation.resolve("tests/" + emrDto.getPatientId());
+                Path testLocation = this.emrStorageLocation.resolve("Tests/" + emrDto.getPatientId());
                 storeDocument(tests, testLocation, test.getHash());
 
 
@@ -242,7 +244,7 @@ public class EmrService {
             try {
                 MultipartFile prescriptions = updateEmrDto.getPrescription();
                 Document document = new Document();
-                document.setName(prescriptions.getOriginalFilename());
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + updateEmrDto.getPatientId().toString() + prescriptions.getOriginalFilename());
                 document.setMimeType(prescriptions.getContentType());
                 document.setSize(prescriptions.getSize());
                 document.setHash();
@@ -257,7 +259,7 @@ public class EmrService {
             try{
                 MultipartFile comments = updateEmrDto.getComments();
                 Document comment = new Document();
-                comment.setName(comments.getOriginalFilename());
+                comment.setName(this.emrStorageLocation.toString() + "/Comments/" + updateEmrDto.getPatientId().toString() + comments.getOriginalFilename());
                 comment.setMimeType(comments.getContentType());
                 comment.setSize(comments.getSize());
                 comment.setHash();
@@ -273,11 +275,11 @@ public class EmrService {
             try{
                 MultipartFile tests = updateEmrDto.getTests();
                 Document test = new Document();
-                test.setName(tests.getOriginalFilename());
+                test.setName(this.emrStorageLocation.toString() + "/Tests/" + updateEmrDto.getPatientId().toString() + tests.getOriginalFilename());
                 test.setMimeType(tests.getContentType());
                 test.setSize(tests.getSize());
                 test.setHash();
-                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDto.getPatientId());
+                Path commentLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDto.getPatientId());
                 storeDocument(tests, commentLocation, test.getHash());
                 documentRepository.save(test);
             } catch (IOException | NoSuchAlgorithmException e){
