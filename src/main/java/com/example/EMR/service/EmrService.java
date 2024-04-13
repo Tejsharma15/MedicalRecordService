@@ -2,6 +2,7 @@ package com.example.EMR.service;
 
 import com.example.EMR.dto.EmrDto;
 import com.example.EMR.dto.UpdateEmrDto;
+import com.example.EMR.dto.UpdateEmrDtoText;
 import com.example.EMR.models.Document;
 import com.example.EMR.models.Emr;
 import com.example.EMR.property.DocumentStorageProperty;
@@ -19,10 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -237,6 +238,73 @@ public class EmrService {
         return obj.getPublicEmrId();
     }
 
+    public static void convertStringToFile(String content, Path filePath) throws IOException {
+        // Create parent directories if they don't exist
+        Files.createDirectories(filePath.getParent());
+
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(filePath.toFile(), true);
+            LocalDateTime currentDate = LocalDateTime.now();
+            // Format date and time
+            String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            // Write formatted date, content, and newline character to file
+            writer.write(formattedDate + " " + content + "\n");
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+    public ResponseEntity<String> updateEmrByIdText (UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
+        UUID id = updateEmrDtoText.getPublicEmrId();
+        if(updateEmrDtoText.getPrescription() != null){
+            try {
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + updateEmrDtoText.getPatientId().toString() + id);
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getPrescription().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getPrescription());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDtoText.getPatientId());
+                convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
+            }
+            catch(Exception e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving prescription");
+            }
+
+        }
+        if(updateEmrDtoText.getComments() != null) {
+            try {
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Comments/" + updateEmrDtoText.getPatientId().toString() + "/" + id);
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getComments().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getComments());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDtoText.getPatientId());
+                convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving comments");
+            }
+        }
+        if(updateEmrDtoText.getTests() != null) {
+            try {
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Tests/" + updateEmrDtoText.getPatientId().toString() + "/" + id);
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getTests().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getTests());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDtoText.getPatientId());
+                convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving tests");
+            }
+        }
+        emrRepository.updateLastUpdate(updateEmrDtoText.getPublicEmrId(), System.currentTimeMillis() / 1000);
+        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
+    }
     public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
         UUID id = updateEmrDto.getPublicEmrId();
         System.out.println("Updating the emr by the id" + id);

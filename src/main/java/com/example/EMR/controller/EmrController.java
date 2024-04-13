@@ -1,7 +1,7 @@
 package com.example.EMR.controller;
 
 import com.example.EMR.dto.EmrDto;
-import com.example.EMR.dto.UpdateEmrDto;
+import com.example.EMR.dto.UpdateEmrDtoText;
 import com.example.EMR.service.EmrService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @RestController
@@ -50,9 +51,9 @@ public class EmrController {
 
     @PutMapping("/updateEmrById")
     @PreAuthorize("hasAuthority('patient:update')")
-    public ResponseEntity<?> updateEmrById(@ModelAttribute UpdateEmrDto updateEmrDto){
+    public ResponseEntity<?> updateEmrById(@ModelAttribute UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
         System.out.println("Updating emr by id");
-        return emrService.updateEmrById(updateEmrDto);
+        return emrService.updateEmrByIdText(updateEmrDtoText);
     }
 
     @PutMapping("/deleteEmrByPatientId/{patientId}")
