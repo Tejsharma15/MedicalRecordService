@@ -24,9 +24,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 @Service
 @Transactional
 public class EmrService {
@@ -249,7 +248,7 @@ public class EmrService {
             // Format date and time
             String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             // Write formatted date, content, and newline character to file
-            writer.write(formattedDate + " " + content + "\n");
+            writer.write("\n"+formattedDate + " " + content + "\n");
         } finally {
             if (writer != null) {
                 writer.close();
@@ -266,7 +265,7 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getPrescription().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getPrescription());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDtoText.getPatientId());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDtoText.getPatientId() + "/" + id);
                 convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
             }
             catch(Exception e){
@@ -282,7 +281,7 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getComments().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getComments());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDtoText.getPatientId());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDtoText.getPatientId() + "/" + id);
                 convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving comments");
@@ -296,7 +295,7 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getTests().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getTests());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDtoText.getPatientId());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDtoText.getPatientId() + "/" + id);
                 convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving tests");
@@ -304,6 +303,47 @@ public class EmrService {
         }
         emrRepository.updateLastUpdate(updateEmrDtoText.getPublicEmrId(), System.currentTimeMillis() / 1000);
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
+    }
+
+    public ResponseEntity<Map<String, Map<String, String>>> getEmrByPatientIdText(UUID patientId) throws IOException{
+        Map<String, Map<String, String>> nestedMap = new HashMap<>();
+        // Define the categories and corresponding file paths
+        String[] categories = {"Prescriptions", "Comments", "Tests"};
+        String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
+
+        for (String category : categories) {
+            String categoryPath = basePath + category + "/" + patientId.toString() + "/";
+            Map<String, String> fileTextMap = new HashMap<>();
+            try {
+                Files.walk(Path.of(categoryPath))
+                        .filter(Files::isRegularFile)
+                        .forEach(filePath -> {
+                            try {
+                                String fileName = filePath.getFileName().toString();
+                                String textContent = Files.readString(filePath);
+                                fileTextMap.put(fileName, textContent);
+                            } catch (IOException e) {
+                                e.printStackTrace(); // Handle or log the exception
+                            }
+                        });
+                nestedMap.put(category, fileTextMap);
+            } catch (IOException e) {
+                throw e;
+            }
+        }
+
+
+        return ResponseEntity.ok().body(nestedMap);
+    }
+
+    private static String readTextFromFile(String filePath) throws IOException{
+        try {
+            // Read text content from file
+            byte[] bytes = Files.readAllBytes(Path.of(filePath));
+            return new String(bytes);
+        } catch (IOException e) {
+            throw e; // Return empty string if file not found or cannot be read
+        }
     }
     public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
         UUID id = updateEmrDto.getPublicEmrId();
