@@ -309,48 +309,47 @@ public class EmrService {
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
     }
 
-    public ResponseEntity<Map<String, Map<String, String>>> getEmrByPatientIdText(UUID patientId) throws IOException{
-        Map<String, Map<String, String>> nestedMap = new HashMap<>();
+    public ResponseEntity<Map<String, String>> getEmrByPatientIdText(UUID patientId) throws IOException{
+//        Map<String, Map<String, String>> nestedMap = new HashMap<>();
         // Define the categories and corresponding file paths
         String[] categories = {"Prescriptions", "Comments", "Tests"};
         String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
 
+        Map<String, String> fileTextMap = new HashMap<>();
         for (String category : categories) {
             String categoryPath = basePath + category + "/" + patientId.toString() + "/";
-            Map<String, String> fileTextMap = new HashMap<>();
             try {
                 Files.walk(Path.of(categoryPath))
                         .filter(Files::isRegularFile)
                         .forEach(filePath -> {
                             try {
-                                String fileName = filePath.getFileName().toString();
+//                                String fileName = filePath.getFileName().toString();
                                 String textContent = Files.readString(filePath);
-                                fileTextMap.put(fileName, textContent);
+                                fileTextMap.put(category, textContent);
                             } catch (IOException e) {
-                                String fileName = filePath.getFileName().toString();
-                                fileTextMap.put(fileName, "");
+//                                String fileName = filePath.getFileName().toString();
+                                fileTextMap.put(category, "");
                             }
                         });
-                nestedMap.put(category, fileTextMap);
+
             } catch (IOException e) {
                 System.out.println("empty");
             }
         }
 
 
-        return ResponseEntity.ok().body(nestedMap);
+        return ResponseEntity.ok().body(fileTextMap);
     }
 
-    public ResponseEntity<Map<String, Map<String, String>>> getEmrByEmrIdText(UUID publicEmrId) throws IOException{
+    public ResponseEntity<Map<String, String>> getEmrByEmrIdText(UUID publicEmrId) throws IOException{
         UUID emrId = emrRepository.getEmrIdByPublicEmrId(publicEmrId);
-        Map<String, Map<String, String>> nestedMap = new HashMap<>();
         // Define the categories and corresponding file paths
         String[] categories = {"Prescriptions", "Comments", "Tests"};
         String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
 
+        Map<String, String> fileTextMap = new HashMap<>();
         for (String category : categories) {
             String categoryPath = basePath + category + "/" + emrId.toString() + "/";
-            Map<String, String> fileTextMap = new HashMap<>();
             try {
                 Files.walk(Path.of(categoryPath))
                         .filter(Files::isRegularFile)
@@ -358,20 +357,20 @@ public class EmrService {
                             try {
                                 String fileName = filePath.getFileName().toString();
                                 String textContent = Files.readString(filePath);
-                                fileTextMap.put(fileName, textContent);
+                                fileTextMap.put(category, textContent);
                             } catch (IOException e) {
                                 String fileName = filePath.getFileName().toString();
-                                fileTextMap.put(fileName, "");
+                                fileTextMap.put(category, "");
                             }
                         });
-                nestedMap.put(category, fileTextMap);
+//                nestedMap.put(category, fileTextMap);
             } catch (IOException e) {
                 System.out.println("empty");
             }
         }
 
 
-        return ResponseEntity.ok().body(nestedMap);
+        return ResponseEntity.ok().body(fileTextMap);
     }
 
     private static String readTextFromFile(String filePath) throws IOException{
