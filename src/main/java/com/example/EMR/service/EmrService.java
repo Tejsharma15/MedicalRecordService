@@ -223,13 +223,14 @@ public class EmrService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Requesting file upload");
     }
 
-    public UUID insertConsulationEmr(EmrDto emrDto){
+    public UUID insertConsulationEmr(UpdateEmrDtoText updateEmrDtoText){
         Emr obj = new Emr();
-        obj.setPatientId(emrDto.getPatientId());
-        obj.setAccessDepartments(emrDto.getAccessDepartments());
-        obj.setAccessList(emrDto.getAccessList());
+        obj.setPatientId(updateEmrDtoText.getPatientId());
+        obj.setAccessDepartments(updateEmrDtoText.getAccessDepartments());
+        obj.setAccessList(updateEmrDtoText.getAccessList());
         obj.setComments(null);
         obj.setPrescription(null);
+        obj.setTests(null);
         obj.setPublicEmrId(UUID.randomUUID());
         obj.setLastUpdate(System.currentTimeMillis() / 1000);
         System.out.println("Created EMR object, storing now.");
@@ -238,6 +239,7 @@ public class EmrService {
     }
 
     public static void convertStringToFile(String content, Path filePath) throws IOException {
+        System.out.println(filePath.toString());
         // Create parent directories if they don't exist
         Files.createDirectories(filePath.getParent());
 
@@ -255,33 +257,35 @@ public class EmrService {
             }
         }
     }
-    public ResponseEntity<String> updateEmrByIdText (UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
-        UUID id = updateEmrDtoText.getPublicEmrId();
+        public ResponseEntity<String> updateEmrByIdText (UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
+        UUID id = emrRepository.getEmrIdByPublicEmrId(updateEmrDtoText.getPublicEmrId());
+        System.out.println("id: " + id);
+        System.out.println("/Prescriptions/" + id + "/");
         if(updateEmrDtoText.getPrescription() != null){
             try {
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + updateEmrDtoText.getPatientId().toString() + id);
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getPrescription().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getPrescription());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDtoText.getPatientId() + "/" + id);
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + "id" + "/");
                 convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
             }
             catch(Exception e){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving prescription");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving prescription " + e);
             }
 
         }
         if(updateEmrDtoText.getComments() != null) {
             try {
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Comments/" + updateEmrDtoText.getPatientId().toString() + "/" + id);
+                document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getComments().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getComments());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDtoText.getPatientId() + "/" + id);
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving comments");
@@ -290,12 +294,12 @@ public class EmrService {
         if(updateEmrDtoText.getTests() != null) {
             try {
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Tests/" + updateEmrDtoText.getPatientId().toString() + "/" + id);
+                document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getTests().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getTests());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDtoText.getPatientId() + "/" + id);
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving tests");
@@ -313,6 +317,39 @@ public class EmrService {
 
         for (String category : categories) {
             String categoryPath = basePath + category + "/" + patientId.toString() + "/";
+            Map<String, String> fileTextMap = new HashMap<>();
+            try {
+                Files.walk(Path.of(categoryPath))
+                        .filter(Files::isRegularFile)
+                        .forEach(filePath -> {
+                            try {
+                                String fileName = filePath.getFileName().toString();
+                                String textContent = Files.readString(filePath);
+                                fileTextMap.put(fileName, textContent);
+                            } catch (IOException e) {
+                                String fileName = filePath.getFileName().toString();
+                                fileTextMap.put(fileName, "");
+                            }
+                        });
+                nestedMap.put(category, fileTextMap);
+            } catch (IOException e) {
+                System.out.println("empty");
+            }
+        }
+
+
+        return ResponseEntity.ok().body(nestedMap);
+    }
+
+    public ResponseEntity<Map<String, Map<String, String>>> getEmrByEmrIdText(UUID publicEmrId) throws IOException{
+        UUID emrId = emrRepository.getEmrIdByPublicEmrId(publicEmrId);
+        Map<String, Map<String, String>> nestedMap = new HashMap<>();
+        // Define the categories and corresponding file paths
+        String[] categories = {"Prescriptions", "Comments", "Tests"};
+        String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
+
+        for (String category : categories) {
+            String categoryPath = basePath + category + "/" + emrId.toString() + "/";
             Map<String, String> fileTextMap = new HashMap<>();
             try {
                 Files.walk(Path.of(categoryPath))

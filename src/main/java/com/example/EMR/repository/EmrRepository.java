@@ -36,4 +36,6 @@ public interface EmrRepository extends JpaRepository<Emr,UUID> {
 
     @Query("SELECT e.publicEmrId FROM Emr e WHERE e.patientId = :patientId")
     List<UUID> getEmrByPatientId(UUID patientId);
+    @Query("SELECT e.emrId FROM Emr e WHERE e.publicEmrId = :publicEmrId")
+    UUID getEmrIdByPublicEmrId(UUID publicEmrId);
 }

@@ -1,6 +1,5 @@
 package com.example.EMR.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,13 +26,13 @@ public class Consultation {
     @Column(name = "consultationId", updatable = false, nullable = false )
     private UUID consultationId;
 
-//    @MapsId("patientId")
+    //    @MapsId("patientId")
     @ManyToOne
     // @JsonIgnore
     @JoinColumn(name = "patientId", referencedColumnName = "patientId", unique = false)
     private Patient patient;
 
-//    @MapsId("employeeId")
+    //    @MapsId("employeeId")
     @ManyToOne
     // @JsonIgnore
     @JoinColumn(name = "employeeId", referencedColumnName = "employeeId", unique = false)
@@ -42,4 +41,7 @@ public class Consultation {
 
     @Column(name="EMRID", unique = true)
     private UUID emrId;
+
+    @Column(name="ConsultationStatus",nullable=false)
+    boolean isActive;
 }

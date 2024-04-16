@@ -54,6 +54,24 @@ public class EmrController {
                     .body(Map.of("error", "File not found"));
         }
     }
+
+    @GetMapping("/getEmrByEmrIdText/{emrId}")
+    @PreAuthorize("hasAuthority('patient:read')")
+    public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") UUID emrId) throws IOException {
+        System.out.println("Returning EMR");
+        try {
+            return emrService.getEmrByEmrIdText(emrId);
+        } catch (FileNotFoundException e) {
+            // Handle file not found error
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "File not found"));
+        } catch (IOException e) {
+            // Handle other IO exceptions
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "File not found"));
+        }
+    }
+
     @PostMapping("/insertNewEmr")
     @PreAuthorize("hasAuthority('patient:write')")
     public ResponseEntity<?> insertNewEmr(@ModelAttribute EmrDto emrDto){
