@@ -269,7 +269,7 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getPrescription().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getPrescription());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + "id" + "/");
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
             }
             catch(Exception e){
