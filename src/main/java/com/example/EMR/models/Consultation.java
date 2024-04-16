@@ -43,5 +43,5 @@ public class Consultation {
     private UUID emrId;
 
     @Column(name="ConsultationStatus",nullable=false)
-    boolean isActive;
+    private Boolean isActive;
 }

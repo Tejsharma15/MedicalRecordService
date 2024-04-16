@@ -67,6 +67,7 @@ public class ConsultationService {
 
         Consultation consultation = new Consultation();
         consultation.setDoctor(doctor);
+        consultation.setIsActive(true);
         consultation.setPatient(patient);
 
         UpdateEmrDtoText updateEmrDtoText = new UpdateEmrDtoText();
