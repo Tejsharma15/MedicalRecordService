@@ -323,12 +323,13 @@ public class EmrService {
                                 String textContent = Files.readString(filePath);
                                 fileTextMap.put(fileName, textContent);
                             } catch (IOException e) {
-                                e.printStackTrace(); // Handle or log the exception
+                                String fileName = filePath.getFileName().toString();
+                                fileTextMap.put(fileName, "");
                             }
                         });
                 nestedMap.put(category, fileTextMap);
             } catch (IOException e) {
-                throw e;
+                System.out.println("empty");
             }
         }
 
@@ -342,7 +343,7 @@ public class EmrService {
             byte[] bytes = Files.readAllBytes(Path.of(filePath));
             return new String(bytes);
         } catch (IOException e) {
-            throw e; // Return empty string if file not found or cannot be read
+            return ""; // Return empty string if file not found or cannot be read
         }
     }
     public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
