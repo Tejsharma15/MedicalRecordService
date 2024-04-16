@@ -45,6 +45,7 @@ public class ConsultationController {
     }
 
     @GetMapping("/getEmrIdByPatientIdAndDoctorId")
+    @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getEmrIdByPatientIdAndDoctorId(@RequestParam UUID patientId, @RequestParam UUID doctorId){
         try {
             return ResponseEntity.ok(consultationService.getEmrIdByPatientIdAndDoctorId(patientId, doctorId));
