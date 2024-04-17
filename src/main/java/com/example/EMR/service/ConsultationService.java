@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +59,7 @@ public class ConsultationService {
         return consultationRequestDto;
     }
 
-    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException {
+    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException {
 
         User doctor = userRepository.findById(consultationdto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
@@ -74,11 +75,13 @@ public class ConsultationService {
         updateEmrDtoText.setPatientId(consultationdto.getPatientId());
         updateEmrDtoText.setAccessDepartments("");
         updateEmrDtoText.setAccessList(consultationdto.getDoctorId().toString());
-        updateEmrDtoText.setComments("");
-        updateEmrDtoText.setPrescription("");
-        updateEmrDtoText.setTests("");
+        updateEmrDtoText.setComments("Created EMR");
+        updateEmrDtoText.setPrescription("Created EMR");
+        updateEmrDtoText.setTests("Created EMR");
         System.out.println("Created emrDto to create EMR via consultation");
         UUID publicEmrId = emrService.insertConsulationEmr(updateEmrDtoText);
+        updateEmrDtoText.setPublicEmrId(publicEmrId);
+        emrService.updateEmrByIdText(updateEmrDtoText);
 
         consultation.setEmrId(publicEmrId);
         System.out.println("doc: " + consultation.getDoctor().getEmployeeId());

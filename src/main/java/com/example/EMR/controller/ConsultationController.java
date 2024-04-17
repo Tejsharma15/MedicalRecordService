@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class ConsultationController {
 
     @PostMapping("/addConsultation")
     @PreAuthorize("hasAuthority('admin:create') or hasAuthority('desk:create')")
-    public ResponseEntity<?>addConsultation(@RequestBody ConsultationDto consultationdto) throws ResourceNotFoundException {
+    public ResponseEntity<?>addConsultation(@RequestBody ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException {
         System.out.println("Adding consultation");
         return consultationService.addConsultation(consultationdto);
     }

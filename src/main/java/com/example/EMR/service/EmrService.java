@@ -228,9 +228,9 @@ public class EmrService {
         obj.setPatientId(updateEmrDtoText.getPatientId());
         obj.setAccessDepartments(updateEmrDtoText.getAccessDepartments());
         obj.setAccessList(updateEmrDtoText.getAccessList());
-        obj.setComments(null);
-        obj.setPrescription(null);
-        obj.setTests(null);
+        obj.setComments("");
+        obj.setPrescription("");
+        obj.setTests("");
         obj.setPublicEmrId(UUID.randomUUID());
         obj.setLastUpdate(System.currentTimeMillis() / 1000);
         System.out.println("Created EMR object, storing now.");
@@ -271,6 +271,7 @@ public class EmrService {
                 System.out.println(updateEmrDtoText.getPrescription());
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
+                emrRepository.setPrescriptionLocation(updateEmrDtoText.getPublicEmrId(), prescriptionLocation.toString());
             }
             catch(Exception e){
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving prescription " + e);
@@ -279,6 +280,7 @@ public class EmrService {
         }
         if(updateEmrDtoText.getComments() != null) {
             try {
+                System.out.println("Trying to add comments:");
                 Document document = new Document();
                 document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/");
                 document.setMimeType("text/plain");
@@ -287,12 +289,14 @@ public class EmrService {
                 System.out.println(updateEmrDtoText.getComments());
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
+                emrRepository.setCommentLocation(updateEmrDtoText.getPublicEmrId(), prescriptionLocation.toString());
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving comments");
             }
         }
         if(updateEmrDtoText.getTests() != null) {
             try {
+                System.out.println("Trying to add comments:");
                 Document document = new Document();
                 document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/");
                 document.setMimeType("text/plain");
@@ -301,6 +305,7 @@ public class EmrService {
                 System.out.println(updateEmrDtoText.getTests());
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
+                emrRepository.setTestLocation(updateEmrDtoText.getPublicEmrId(), prescriptionLocation.toString());
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving tests");
             }

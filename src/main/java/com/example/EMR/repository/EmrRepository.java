@@ -38,4 +38,15 @@ public interface EmrRepository extends JpaRepository<Emr,UUID> {
     List<UUID> getEmrByPatientId(UUID patientId);
     @Query("SELECT e.emrId FROM Emr e WHERE e.publicEmrId = :publicEmrId")
     UUID getEmrIdByPublicEmrId(UUID publicEmrId);
+
+    @Modifying
+    @Query("UPDATE Emr e SET e.comments = :comments WHERE e.publicEmrId = :publicEmrId")
+    void setCommentLocation(UUID publicEmrId, String comments);
+    @Modifying
+    @Query("UPDATE Emr e SET e.prescription = :prescription WHERE e.publicEmrId = :publicEmrId")
+    void setPrescriptionLocation(UUID publicEmrId, String prescription);
+    @Modifying
+    @Query("UPDATE Emr e SET e.tests = :tests WHERE e.publicEmrId = :publicEmrId")
+    void setTestLocation(UUID publicEmrId, String tests);
+
 }
