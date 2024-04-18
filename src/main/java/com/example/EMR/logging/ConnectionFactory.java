@@ -21,7 +21,7 @@ public class ConnectionFactory {
     private ConnectionFactory() {
         Properties properties = new Properties();
         properties.setProperty("user", "root");
-        properties.setProperty("password", "tej123four"); // or get properties from some configuration file
+        properties.setProperty("password", "123456"); // or get properties from some configuration file
 
         GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>();
         DriverManagerConnectionFactory connectionFactory = new DriverManagerConnectionFactory(

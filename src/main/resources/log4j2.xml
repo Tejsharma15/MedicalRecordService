@@ -9,7 +9,7 @@
                 <DriverName>com.mysql.cj.jdbc.Driver</DriverName>
                 <ConnectionString>jdbc:mysql://localhost:3306/logs_db</ConnectionString>
                 <UserName>root</UserName>
-                <Password>tej123four</Password>
+                <Password>123456</Password>
             </ConnectionFactory>
             <Column name="EVENT_DATE" isEventTimestamp="true" />
             <Column name="LEVEL" pattern="%level" />
@@ -17,6 +17,7 @@
             <Column name="MSG" pattern="%message" />
             <Column name="THROWABLE" pattern="%ex{full}" />
             <Column name="ACTOR_ID" pattern="%X{actorUUID}"/>
+            <Column name="USER_ID" pattern="%X{userUUID}"/>
         </JDBC>
     </Appenders>
 
