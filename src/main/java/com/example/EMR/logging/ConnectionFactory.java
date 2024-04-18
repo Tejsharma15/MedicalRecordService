@@ -8,7 +8,9 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 public class ConnectionFactory {
@@ -23,7 +25,19 @@ public class ConnectionFactory {
         properties.setProperty("user", "root");
         properties.setProperty("password", "123456"); // or get properties from some configuration file
 
-        GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>();
+        String url = "jdbc:mysql://localhost:3306/";
+
+        try (Connection connection = DriverManager.getConnection(url, properties)) {
+            // Create the database if it doesn't exist
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE DATABASE IF NOT EXISTS logs_db");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception properly in your application
+        }
+
+        // Now, proceed with creating the connection pool and logs table as before
+        GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<>();
         DriverManagerConnectionFactory connectionFactory = new DriverManagerConnectionFactory(
                 "jdbc:mysql://localhost:3306/logs_db", properties
         );
@@ -32,6 +46,19 @@ public class ConnectionFactory {
         );
 
         this.dataSource = new PoolingDataSource(pool);
+        createLogsTable();
+    }
+
+    private void createLogsTable() {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            // SQL script to create the logs table
+            String sql = "CREATE TABLE IF NOT EXISTS logs ( EVENT_DATE TIMESTAMP, LEVEL VARCHAR(255), LOGGER VARCHAR(255), MSG TEXT, THROWABLE TEXT, ACTOR_ID VARCHAR(36), USER_ID VARCHAR(36))";
+            // Execute the SQL statement
+            statement.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception properly in your application
+        }
     }
 
     public static Connection getDatabaseConnection() throws SQLException {
