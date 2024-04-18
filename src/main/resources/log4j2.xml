@@ -1,13 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="INFO">
+<Configuration status="trace">
     <Appenders>
-        <Redis name="Redis" host="localhost" port="6379">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </Redis>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%m%n"/>
+        </Console>
+        <JDBC name="JDBCAppender" tableName="logs">
+            <ConnectionFactory class="com.example.EMR.logging.ConnectionFactory" method="getDatabaseConnection">
+                <DriverName>com.mysql.cj.jdbc.Driver</DriverName>
+                <ConnectionString>jdbc:mysql://localhost:3306/logs_db</ConnectionString>
+                <UserName>root</UserName>
+                <Password>tej123four</Password>
+            </ConnectionFactory>
+            <Column name="EVENT_DATE" isEventTimestamp="true" />
+            <Column name="LEVEL" pattern="%level" />
+            <Column name="LOGGER" pattern="%logger" />
+            <Column name="MSG" pattern="%message" />
+            <Column name="THROWABLE" pattern="%ex{full}" />
+            <Column name="ACTOR_ID" pattern="%X{actorUUID}"/>
+        </JDBC>
     </Appenders>
+
     <Loggers>
+        <!-- Root Logger -->
         <Root level="info">
-            <AppenderRef ref="Redis"/>
+            <AppenderRef ref="ConsoleAppender"/>
         </Root>
+        <Logger name = "com.example" additivity = "false">
+            <AppenderRef ref="JDBCAppender"/>
+        </Logger>
     </Loggers>
 </Configuration>
+

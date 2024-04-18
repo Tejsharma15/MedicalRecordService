@@ -9,6 +9,8 @@ import com.example.EMR.property.DocumentStorageProperty;
 import com.example.EMR.repository.DocumentRepository;
 import com.example.EMR.repository.EmrRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +34,7 @@ public class EmrService {
     private final EmrRepository emrRepository;
     private final DocumentRepository documentRepository;
     private final Path emrStorageLocation;
+
 
     @Autowired
     EmrService(EmrRepository emrRepository, DocumentRepository documentRepository, DocumentStorageProperty documentStorageProperty) {
