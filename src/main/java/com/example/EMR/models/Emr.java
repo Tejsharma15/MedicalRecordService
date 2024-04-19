@@ -17,8 +17,6 @@ public class Emr {
     @Column(name = "emrId", nullable = false)
     private UUID emrId;
 
-    @Column(name = "publicEmrId", nullable = false)
-    private UUID publicEmrId;
     @Column(name = "patientId", nullable = false)
     private UUID patientId;
     @Column(name = "accessDepartments")

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 public class UpdateEmrDto implements Serializable {
 
-    private UUID publicEmrId;
+    private String publicEmrId;
 
     private UUID patientId;
     private String accessDepartments;

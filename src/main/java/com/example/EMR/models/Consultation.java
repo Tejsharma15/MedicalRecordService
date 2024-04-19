@@ -40,7 +40,7 @@ public class Consultation {
 
 
     @Column(name="EMRID", unique = true)
-    private UUID emrId;
+    private String emrId;
 
     @Column(name="ConsultationStatus",nullable=false)
     private Boolean isActive;

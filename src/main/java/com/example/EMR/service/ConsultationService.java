@@ -1,10 +1,7 @@
 package com.example.EMR.service;
 
 import com.example.EMR.Exception.ResourceNotFoundException;
-import com.example.EMR.dto.ConsultationCreationDto;
-import com.example.EMR.dto.ConsultationDto;
-import com.example.EMR.dto.ConsultationRequestDto;
-import com.example.EMR.dto.UpdateEmrDtoText;
+import com.example.EMR.dto.*;
 import com.example.EMR.models.Consultation;
 import com.example.EMR.models.Employee_Department;
 import com.example.EMR.models.Patient;
@@ -36,12 +33,14 @@ public class ConsultationService {
     private final EmployeeDepartmentRepository employeeDepartmentRepository;
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
+    private final PublicPrivateService publicPrivateService;
 
     @Autowired
     public ConsultationService(ConsultationRepository consultationRepository, EmrService emrService,
                                UserRepository userRepository, PatientRepository patientRepository,
                                Patient_DoctorService patientDoctorService, Patient_DepartmentService patientDepartmentService,
-                               EmployeeDepartmentRepository employeeDepartmentRepository) {
+                               EmployeeDepartmentRepository employeeDepartmentRepository,
+                               PublicPrivateService publicPrivateService) {
         this.consultationRepository = consultationRepository;
         this.emrService = emrService;
         this.userRepository = userRepository;
@@ -49,21 +48,23 @@ public class ConsultationService {
         this.patientDepartmentService = patientDepartmentService;
         this.patientDoctorService = patientDoctorService;
         this.employeeDepartmentRepository = employeeDepartmentRepository;
+        this.publicPrivateService = publicPrivateService;
     }
 
     public ConsultationRequestDto convertConsultationToRequestDto(Consultation obj) {
         ConsultationRequestDto consultationRequestDto = new ConsultationRequestDto();
         consultationRequestDto.setPublicEmrId(obj.getEmrId());
-        consultationRequestDto.setPatientId(obj.getPatient().getPatientId());
-        consultationRequestDto.setDoctorId(obj.getDoctor().getEmployeeId());
+        consultationRequestDto.setPatientId(publicPrivateService.publicIdByPrivateId(obj.getPatient().getPatientId()));
+        consultationRequestDto.setDoctorId(publicPrivateService.publicIdByPrivateId(obj.getDoctor().getEmployeeId()));
         return consultationRequestDto;
     }
 
     public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException {
-
-        User doctor = userRepository.findById(consultationdto.getDoctorId())
+        UUID patientPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getPatientId());
+        UUID doctorPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getDoctorId());
+        User doctor = userRepository.findById(doctorPvtId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
-        Patient patient = patientRepository.findById(consultationdto.getPatientId())
+        Patient patient = patientRepository.findById(patientPvtId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
         Consultation consultation = new Consultation();
@@ -71,15 +72,23 @@ public class ConsultationService {
         consultation.setIsActive(true);
         consultation.setPatient(patient);
 
+        CreateEmrDtoText createEmrDtoText = new CreateEmrDtoText();
+        createEmrDtoText.setPatientId(patientPvtId);
+        createEmrDtoText.setAccessDepartments("");
+        createEmrDtoText.setAccessList(doctorPvtId.toString());
+        createEmrDtoText.setComments("");
+        createEmrDtoText.setPrescription("");
+        createEmrDtoText.setTests("");
+        System.out.println("Created emrDto to create EMR via consultation");
+        String publicEmrId = emrService.insertConsulationEmr(createEmrDtoText);
+
         UpdateEmrDtoText updateEmrDtoText = new UpdateEmrDtoText();
         updateEmrDtoText.setPatientId(consultationdto.getPatientId());
         updateEmrDtoText.setAccessDepartments("");
-        updateEmrDtoText.setAccessList(consultationdto.getDoctorId().toString());
+        updateEmrDtoText.setAccessList(doctorPvtId.toString());
         updateEmrDtoText.setComments("Created EMR");
         updateEmrDtoText.setPrescription("Created EMR");
         updateEmrDtoText.setTests("Created EMR");
-        System.out.println("Created emrDto to create EMR via consultation");
-        UUID publicEmrId = emrService.insertConsulationEmr(updateEmrDtoText);
         updateEmrDtoText.setPublicEmrId(publicEmrId);
         emrService.updateEmrByIdText(updateEmrDtoText);
 
@@ -88,10 +97,10 @@ public class ConsultationService {
         System.out.println("pat: " + consultation.getPatient().getPatientId());
         System.out.println("id: " + consultation.getEmrId());
         consultationRepository.save(consultation);
-        patientDoctorService.addPatient_Doctor(consultationdto.getPatientId(), consultationdto.getDoctorId());
+        patientDoctorService.addPatient_Doctor(patientPvtId, doctorPvtId);
         List<Employee_Department> u = employeeDepartmentRepository.findDepartmentsByEmployee(doctor);
         for (int i = 0; i < u.size(); i++) {
-            patientDepartmentService.addPatient_Department(consultationdto.getPatientId(),
+            patientDepartmentService.addPatient_Department(patientPvtId,
                     u.get(i).getId().getDepartmentId());
         }
         System.out.println("Added to dependency tables");
@@ -122,7 +131,7 @@ public class ConsultationService {
         return ResponseEntity.ok(consultationRequestDto);
     }
 
-    public UUID getEmrIdByPatientIdAndDoctorId(UUID patientId, UUID doctorId) {
+    public String getEmrIdByPatientIdAndDoctorId(UUID patientId, UUID doctorId) {
         // Check if the patient exists
         if (!patientRepository.existsById(patientId)) {
             throw new IllegalArgumentException("Patient with id " + patientId + " not found");
@@ -146,4 +155,7 @@ public class ConsultationService {
         }
     }
 
+    public UUID getPatientIdByConsultationId(UUID consultationId) {
+        return consultationRepository.getPatientIdByConsultationId(consultationId);
+    }
 }

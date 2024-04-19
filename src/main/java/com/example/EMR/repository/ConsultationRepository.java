@@ -11,5 +11,6 @@ public interface ConsultationRepository extends JpaRepository<Consultation,UUID>
 
     @Query ("SELECT c FROM Consultation c where c.patient.patientId = :patientId AND c.doctor.employeeId = :doctorId AND c.isActive = :isActive")
     Optional<Consultation> findByPatientIdAndDoctorIdAndIsActive(UUID patientId, UUID doctorId, boolean isActive);
-
+    @Query ("SELECT c.patient.patientId FROM Consultation c where c.consultationId = :consultationId")
+    UUID getPatientIdByConsultationId(UUID consultationId);
 }
