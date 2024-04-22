@@ -2,6 +2,7 @@ package com.example.EMR.controller;
 
 import com.example.EMR.configuration.JwtService;
 import com.example.EMR.dto.UpdateEmrDtoText;
+import com.example.EMR.logging.LogService;
 import com.example.EMR.service.EmrService;
 import com.example.EMR.service.PublicPrivateService;
 import org.apache.logging.log4j.LogManager;
@@ -25,13 +26,13 @@ import java.util.UUID;
 @RequestMapping("/emr")
 public class EmrController {
     private final EmrService emrService;
-    private final JwtService jwtService;
+    private final LogService logService;
     private final PublicPrivateService publicPrivateService;
     private static final Logger logger = LogManager.getLogger("com.example");
     @Autowired
-    EmrController(EmrService emrService, JwtService jwtService, PublicPrivateService publicPrivateService){
+    EmrController(EmrService emrService, LogService logService, PublicPrivateService publicPrivateService){
         this.emrService = emrService;
-        this.jwtService = jwtService;
+        this.logService = logService;
         this.publicPrivateService = publicPrivateService;
     }
 
@@ -39,15 +40,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('prescription:read') or hasAuthority('patient:read')")
     public ResponseEntity<?> getPrescriptionsEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException{
         System.out.println("Returning Prescription BY ID");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = emrService.getPatientIdByEmrId(emrId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Returning Prescription BY ID");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: Prescription by EMR ID", null, emrService.getPatientIdByEmrId(emrId));
         return emrService.getPrescriptionByEmrIdText(emrId);
     }
 
@@ -55,15 +48,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getCommentsByEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException {
         System.out.println("Returning Comments BY ID");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = emrService.getPatientIdByEmrId(emrId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Returning Comments BY ID");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: Comments by EMR ID", null, emrService.getPatientIdByEmrId(emrId));
         return emrService.getCommentsByEmrIdText(emrId);
     }
 
@@ -71,15 +56,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getEmrByPatientIdText(@PathVariable("patientId") String patientId) throws IOException {
         System.out.println("Returning EMR");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = publicPrivateService.privateIdByPublicId(patientId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Returning EMR by Patient ID");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: EMR by Patient ID", null, publicPrivateService.privateIdByPublicId(patientId));
         try {
             return emrService.getEmrByPatientIdText(patientId);
         } catch (FileNotFoundException e) {
@@ -97,15 +74,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") String emrId) throws IOException {
         System.out.println("Returning EMR");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = emrService.getPatientIdByEmrId(emrId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Returning EMR by EMR ID");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: EMR by Public EMR ID", null, emrService.getPatientIdByEmrId(emrId));
         try {
             return emrService.getEmrByEmrIdText(emrId);
         } catch (FileNotFoundException e) {
@@ -135,15 +104,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:update')")
     public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
         System.out.println("Updating emr by id");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = emrService.getPatientIdByEmrId(updateEmrDtoText.getPublicEmrId());
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Updating emr by id");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "PUT: Update by EMR ID", null, emrService.getPatientIdByEmrId(updateEmrDtoText.getPublicEmrId()));
         return emrService.updateEmrByIdText(updateEmrDtoText);
     }
 
@@ -151,15 +112,7 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:delete')")
     public ResponseEntity<?> deleteEmrByPatientId(@PathVariable("patientId") String patientId){
         System.out.println("Deleting emr by id");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = publicPrivateService.privateIdByPublicId(patientId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("Deleting emr by id");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "PUT: Delete by EMR ID", null, publicPrivateService.privateIdByPublicId(patientId));
         return emrService.deleteEmrByPatientId(patientId);
     }
 }
