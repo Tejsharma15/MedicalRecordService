@@ -44,22 +44,26 @@ public class Patient
     @Column(name="patientId",updatable = false, nullable = false )
     private UUID patientId;
 
-   @Convert(converter = StringCryptoConverter.class)
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "Name", nullable = false )
     private String name;
 
-   @Convert(converter = StringCryptoConverter.class)
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "aabhaId", nullable = false )
     private String aabhaId;
 
-   @Convert(converter = StringCryptoConverter.class)
+    @Convert(converter = StringCryptoConverter.class)
+    @Column(name = "aadharId", nullable = false )
+    private String aadharId;
+
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name = "emailId", nullable = false )
     private String emailId;
 
     @Column(name = "DateOfBirth", nullable = false )
     private String dateOfBirth;
 
-   @Convert(converter = StringCryptoConverter.class)
+    @Convert(converter = StringCryptoConverter.class)
     @Column(name="Emergency Contact Number",nullable = false)
     private String emergencyContactNumber;
 
@@ -75,12 +79,7 @@ public class Patient
     @Enumerated(EnumType.STRING)
     private DischargeStatus dischargeStatus;
 
-    @Column(name="age",nullable =false)
-    private int age;
-
     @OneToMany(mappedBy = "patient", cascade = CascadeType.REMOVE)
     private List<Patient_Department> patientDepartments;
 
-    @OneToMany(mappedBy = "patient")
-    private List<Consultation> consultations;
 }

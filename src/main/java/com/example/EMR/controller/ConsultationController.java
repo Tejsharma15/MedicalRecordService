@@ -3,6 +3,7 @@ package com.example.EMR.controller;
 import com.example.EMR.Exception.ResourceNotFoundException;
 import com.example.EMR.dto.ConsultationDto;
 import com.example.EMR.dto.ConsultationRequestDto;
+import com.example.EMR.logging.LogService;
 import com.example.EMR.service.ConsultationService;
 import com.example.EMR.service.PublicPrivateService;
 import org.apache.logging.log4j.LogManager;
@@ -25,12 +26,13 @@ import java.util.UUID;
 @RequestMapping("/consultation")
 public class ConsultationController {
     private ConsultationService consultationService;
+    private LogService logService;
     private final PublicPrivateService publicPrivateService;
-    private static final Logger logger = LogManager.getLogger("com.example");
 
     @Autowired
-    public ConsultationController(ConsultationService consultationService, PublicPrivateService publicPrivateService){
+    public ConsultationController(ConsultationService consultationService, LogService logService, PublicPrivateService publicPrivateService){
         this.consultationService=consultationService;
+        this.logService = logService;
         this.publicPrivateService = publicPrivateService;
     }
 
@@ -38,42 +40,21 @@ public class ConsultationController {
     @PreAuthorize("hasAuthority('admin:create') or hasAuthority('desk:create')")
     public ResponseEntity<?>addConsultation(@RequestBody ConsultationDto consultationDto) throws ResourceNotFoundException, NoSuchAlgorithmException {
         System.out.println("Adding consultation");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = publicPrivateService.privateIdByPublicId(consultationDto.getPatientId());
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("POST: Adding consultation");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "POST: Adding consultation", null, publicPrivateService.privateIdByPublicId(consultationDto.getPatientId()));
         return consultationService.addConsultation(consultationDto);
     }
 
     @GetMapping("/getAllConsultations")
     @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<List<ConsultationRequestDto>> getAllConsultations(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        ThreadContext.put("actorUUID", actor);
-        System.out.println(ThreadContext.get("actorUUID"));
-        logger.info("GET: All consultations");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: All consultation", null, null);
         return consultationService.getAllConsultations();
     }
 
     @GetMapping("/getConsultationById/{consultationId}")
     @PreAuthorize(("hasAuthority('admin:read')"))
     public ResponseEntity<ConsultationRequestDto> getConsultationById(@PathVariable ("consultationId") UUID consultationId){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        UUID object = consultationService.getPatientIdByConsultationId(consultationId);
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", object.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("GET: Consultation ID");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: Consultation by Id", null, consultationService.getPatientIdByConsultationId(consultationId));
         return consultationService.getConsultationById(consultationId);
     }
 
@@ -82,14 +63,7 @@ public class ConsultationController {
     public ResponseEntity<?> getEmrIdByPatientIdAndDoctorId(@RequestParam String patientId, @RequestParam String doctorId){
         UUID patientPvtId = publicPrivateService.privateIdByPublicId(patientId);
         UUID doctorPvtId = publicPrivateService.privateIdByPublicId(doctorId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String actor = authentication.getName();
-        ThreadContext.put("actorUUID", actor);
-        ThreadContext.put("userUUID", patientPvtId.toString());
-        System.out.println(ThreadContext.get("actorUUID"));
-        System.out.println(ThreadContext.get("userUUID"));
-        logger.info("GET: EMR-ID from patient and doctor id");
-        ThreadContext.clearAll();
+        logService.addLog("INFO", "GET: EMR by Patient and Doctor", null, null);
         try {
             return ResponseEntity.ok(consultationService.getEmrIdByPatientIdAndDoctorId(patientPvtId, doctorPvtId));
         } catch (IllegalArgumentException e) {
