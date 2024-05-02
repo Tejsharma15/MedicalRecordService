@@ -5,7 +5,9 @@ import com.example.EMR.dto.ConsultationDto;
 import com.example.EMR.dto.ConsultationRequestDto;
 import com.example.EMR.logging.LogService;
 import com.example.EMR.service.ConsultationService;
+import com.example.EMR.service.PatientService;
 import com.example.EMR.service.PublicPrivateService;
+import com.example.EMR.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
@@ -29,11 +31,16 @@ public class ConsultationController {
     private LogService logService;
     private final PublicPrivateService publicPrivateService;
 
+    private final PatientService patientService;
+    private final UserService userService;
+
     @Autowired
-    public ConsultationController(ConsultationService consultationService, LogService logService, PublicPrivateService publicPrivateService){
+    public ConsultationController(ConsultationService consultationService, LogService logService, PublicPrivateService publicPrivateService, PatientService patientService, UserService userService){
         this.consultationService=consultationService;
         this.logService = logService;
         this.publicPrivateService = publicPrivateService;
+        this.patientService = patientService;
+        this.userService = userService;
     }
 
     @PostMapping("/addConsultation")
@@ -41,8 +48,12 @@ public class ConsultationController {
     public ResponseEntity<?>addConsultation(@RequestBody ConsultationDto consultationDto) throws ResourceNotFoundException, NoSuchAlgorithmException {
         System.out.println("Adding consultation");
         UUID privateId = null;
+        UUID doctorId = null;
         try{
             privateId = publicPrivateService.privateIdByPublicId(consultationDto.getPatientId());
+            doctorId = publicPrivateService.privateIdByPublicId(consultationDto.getDoctorId());
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted/not verified", HttpStatus.OK);
+            if(userService.verifyUser(doctorId))    return new ResponseEntity<>("Not possible. Doctor deleted", HttpStatus.BAD_REQUEST);
             if(privateId == null){
                 logService.addLog("ERROR", "POST: Adding a consultation, ", null, privateId);
                 return new ResponseEntity<>("Could not Add consultation for patient id:"+ consultationDto.getPatientId(), HttpStatus.NOT_FOUND);
@@ -69,6 +80,7 @@ public class ConsultationController {
         UUID privateId = null;
         try{
             privateId = publicPrivateService.privateIdByPublicId(consultationId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted/not verified", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "GET: Consultation by ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find consultation with id: " + consultationId, HttpStatus.NOT_FOUND);
@@ -89,6 +101,7 @@ public class ConsultationController {
         UUID doctorPvtId = null;
         try{
             patientPvtId = publicPrivateService.privateIdByPublicId(patientId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted/not verified", HttpStatus.OK);
             doctorPvtId = publicPrivateService.privateIdByPublicId(doctorId);
             if(patientPvtId == null){
                 logService.addLog("ERROR", "GET: EMR by Patient and Doctor, ", null, patientPvtId);
@@ -100,6 +113,30 @@ public class ConsultationController {
             if(patientPvtId!=null && doctorPvtId != null)
                 logService.addLog("ERROR", "GET: EMR by Patient and Doctor, " + e, null, patientPvtId);
             return new ResponseEntity<>("Could not find EMR by doctor and patient"+ patientId +" "+doctorId, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/reassignDoctor/")
+    @PreAuthorize("hasAuthority(desk:create)")
+    public ResponseEntity<?> reassignDoctor(@RequestBody UpdateConsultationDto updateConsultationDto){
+        System.out.println("Updating consultation");
+        UUID privateId = null;
+        UUID doctorId = null;
+        try{
+            privateId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
+            doctorId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getNewDoctorId());
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted/not verified", HttpStatus.OK);
+            if(userService.verifyUser(doctorId))    return new ResponseEntity<>("Not possible. Doctor deleted", HttpStatus.BAD_REQUEST);
+            if(privateId == null){
+                logService.addLog("ERROR", "PUT: Updating a consultation, ", null, privateId);
+                return new ResponseEntity<>("Could not Update consultation for patient id:"+ updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "POST: Adding consultation", null, privateId);
+            return consultationService.updateConsultation(updateConsultationDto);
+        }catch (Exception e){
+            if(privateId!=null)
+                logService.addLog("ERROR", "POST: Adding a consultation, " + e, null, privateId);
+            return new ResponseEntity<>("Could not Add consultation for patient id:" + updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
         }
     }
 }

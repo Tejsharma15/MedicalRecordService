@@ -5,6 +5,7 @@ import com.example.EMR.dto.UpdateEmrDto;
 import com.example.EMR.dto.UpdateEmrDtoText;
 import com.example.EMR.logging.LogService;
 import com.example.EMR.service.EmrService;
+import com.example.EMR.service.PatientService;
 import com.example.EMR.service.PublicPrivateService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,21 +30,25 @@ public class EmrController {
     private final EmrService emrService;
     private final LogService logService;
     private final PublicPrivateService publicPrivateService;
+
+    private final PatientService patientService;
     private static final Logger logger = LogManager.getLogger("com.example");
     @Autowired
-    EmrController(EmrService emrService, LogService logService, PublicPrivateService publicPrivateService){
+    EmrController(EmrService emrService, LogService logService, PublicPrivateService publicPrivateService, PatientService patientService){
         this.emrService = emrService;
         this.logService = logService;
         this.publicPrivateService = publicPrivateService;
+        this.patientService = patientService;
     }
 
-    @GetMapping("/getPrescriptionByEmrId/{emrId}")
+    @GetMapping("/getPrescriptionByEmrIdText/{emrId}")
     @PreAuthorize("hasAuthority('prescription:read') or hasAuthority('patient:read')")
     public ResponseEntity<?> getPrescriptionsEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException{
         System.out.println("Returning Prescription BY ID");
         UUID privateId = null;
         try{
             privateId = emrService.getPatientIdByEmrId(emrId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "GET: Prescription by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Prescription by EMR ID"+emrId, HttpStatus.NOT_FOUND);
@@ -58,13 +63,14 @@ public class EmrController {
         }
     }
 
-    @GetMapping("/getCommentsByEmrId/{emrId}")
+    @GetMapping("/getCommentsByEmrIdText/{emrId}")
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getCommentsByEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException {
         System.out.println("Returning Comments BY ID");
         UUID privateId = null;
         try{
             privateId = emrService.getPatientIdByEmrId(emrId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "GET: Comments by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Comments by EMR ID"+emrId, HttpStatus.NOT_FOUND);
@@ -86,6 +92,7 @@ public class EmrController {
         UUID privateId = null;
         try{
             privateId = publicPrivateService.privateIdByPublicId(patientId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "GET:EMR by Patient ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Emr by Patient ID"+patientId, HttpStatus.NOT_FOUND);
@@ -107,6 +114,7 @@ public class EmrController {
         UUID privateId = null;
         try{
             privateId = emrService.getPatientIdByEmrId(emrId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "GET: EMR by Public EMR ID", null, privateId);
                 return new ResponseEntity<>("Could not find EMR by Public EMR ID"+emrId, HttpStatus.NOT_FOUND);
@@ -140,6 +148,7 @@ public class EmrController {
         UUID privateId = null;
         try{
             privateId = emrService.getPatientIdByEmrId(updateEmrDtoText.getPublicEmrId());
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDtoText.getPublicEmrId(), HttpStatus.NOT_FOUND);
@@ -161,6 +170,7 @@ public class EmrController {
         UUID privateId = null;
         try{
             privateId = emrService.getPatientIdByEmrId(updateEmrDto.getPublicEmrId());
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             if(privateId == null){
                 logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
@@ -182,6 +192,7 @@ public class EmrController {
         UUID privateId = null;
         try{
             privateId =  publicPrivateService.privateIdByPublicId(patientId);
+            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
             logService.addLog("INFO", "PUT: Delete by EMR ID", null, privateId);
             return emrService.deleteEmrByPatientId(patientId);
         }catch(Exception e){

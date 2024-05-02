@@ -11,23 +11,20 @@ import com.example.EMR.repository.DocumentRepository;
 import com.example.EMR.repository.EmrRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -165,12 +162,12 @@ public class EmrService {
         if(updateEmrDtoText.getPrescription() != null){
             try {
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/");
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getPrescription().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getPrescription());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + id + "/");
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + id + "/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getPrescription(), prescriptionLocation);
                 emrRepository.setPrescriptionLocation(id, prescriptionLocation.toString());
             }
@@ -183,12 +180,12 @@ public class EmrService {
             try {
                 System.out.println("Trying to add comments:");
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/");
+                document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getComments().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getComments());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id + "/");
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id + "/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
                 emrRepository.setCommentLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
@@ -199,12 +196,12 @@ public class EmrService {
             try {
                 System.out.println("Trying to add comments:");
                 Document document = new Document();
-                document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/");
+                document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/" + id + "/");
                 document.setMimeType("text/plain");
                 document.setSize(updateEmrDtoText.getTests().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getTests());
-                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id + "/");
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id + "/" + id + "/");
                 convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
                 emrRepository.setTestLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
@@ -360,74 +357,74 @@ public class EmrService {
         return emrRepository.getPatientIdByEmrId(emrId);
     }
 
-//    public ResponseEntity<byte[]> getEmrByPatientId(UUID patientId) throws FileNotFoundException {
-//        List<UUID> publicEmrId = emrRepository.getEmrByPatientId(patientId);
-//        System.out.println("Calling the database for fetching emr by public id");
-//
-//        HttpHeaders header = new HttpHeaders();
-//        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//
-//        List<InputStream> inputStreams = new ArrayList<>();
-//
-//        try {
-//            for (UUID emrId : publicEmrId) {
-//                String prescriptionHash = emrRepository.findPrescriptionHash(emrId);
-//                String commentHash = emrRepository.findCommentHash(emrId);
-//                String testHash = emrRepository.findTestHash(emrId);
-//
-//                File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + patientId.toString() + "/" + prescriptionHash);
-//                File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + patientId.toString() + "/" + commentHash);
-//                File test = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + patientId.toString() + "/" + testHash);
-//
-//                InputStream prescriptionInputStream = new FileInputStream(prescription);
-//                InputStream commentInputStream = new FileInputStream(comment);
-//                InputStream testInputStream = new FileInputStream(test);
-//
-//                inputStreams.add(prescriptionInputStream);
-//                inputStreams.add(commentInputStream);
-//                inputStreams.add(testInputStream);
-//            }
-//        } catch (FileNotFoundException e) {
-//            // Handle file not found exception
-//            throw new RuntimeException(e);
-//        }
-//
-//        // Combine all InputStreams into one byte array
-//        byte[] combinedBytes = combineInputStreams(inputStreams);
-//
-//        // Return ResponseEntity with byte array and headers
-//        return new ResponseEntity<>(combinedBytes, header, HttpStatus.OK);
-//    }
-//
-//    private byte[] combineInputStreams(List<InputStream> inputStreams) {
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        byte[] buffer = new byte[8192];
-//
-//        try {
-//            for (InputStream inputStream : inputStreams) {
-//                int bytesRead;
-//                while ((bytesRead = inputStream.read(buffer)) != -1) {
-//                    outputStream.write(buffer, 0, bytesRead);
-//                }
-//            }
-//        } catch (IOException e) {
-//            throw new RuntimeException("Error combining InputStreams", e);
-//        } finally {
-//            try {
-//                outputStream.close();
-//            } catch (IOException e) {
-//                // Ignore
-//            }
-//            for (InputStream inputStream : inputStreams) {
-//                try {
-//                    inputStream.close();
-//                } catch (IOException e) {
-//                    // Ignore
-//                }
-//            }
-//        }
-//        return outputStream.toByteArray();
-//    }
+    public ResponseEntity<?> getEmrByPatientId(UUID patientId) throws FileNotFoundException {
+        List<UUID> publicEmrId = emrRepository.getEmrByPatientId(patientId);
+        System.out.println("Calling the database for fetching emr by public id");
+
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        List<InputStream> inputStreams = new ArrayList<>();
+
+        try {
+            for (UUID emrId : publicEmrId) {
+                String prescriptionHash = emrRepository.findPrescriptionHash(emrId);
+                String commentHash = emrRepository.findCommentHash(emrId);
+                String testHash = emrRepository.findTestHash(emrId);
+
+                File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + patientId.toString() + "/" + prescriptionHash);
+                File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + patientId.toString() + "/" + commentHash);
+                File test = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + patientId.toString() + "/" + testHash);
+
+                InputStream prescriptionInputStream = new FileInputStream(prescription);
+                InputStream commentInputStream = new FileInputStream(comment);
+                InputStream testInputStream = new FileInputStream(test);
+
+                inputStreams.add(prescriptionInputStream);
+                inputStreams.add(commentInputStream);
+                inputStreams.add(testInputStream);
+            }
+        } catch (FileNotFoundException e) {
+            // Handle file not found exception
+            throw new RuntimeException(e);
+        }
+
+        // Combine all InputStreams into one byte array
+        byte[] combinedBytes = combineInputStreams(inputStreams);
+
+        // Return ResponseEntity with byte array and headers
+        return new ResponseEntity<>(combinedBytes, header, HttpStatus.OK);
+    }
+
+    private byte[] combineInputStreams(List<InputStream> inputStreams) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+
+        try {
+            for (InputStream inputStream : inputStreams) {
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error combining InputStreams", e);
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+            for (InputStream inputStream : inputStreams) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+        }
+        return outputStream.toByteArray();
+    }
 
     private void storeDocument(MultipartFile file, Path targetLocation, String hash) throws IOException{
         if (!Files.exists(targetLocation)) {
@@ -497,54 +494,57 @@ public class EmrService {
 //        }
 //        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Requesting file upload");
 //    }
-//    public ResponseEntity<InputStreamResource> getPrescriptionByEmrId(UUID publicEmrId) throws FileNotFoundException {
-//        System.out.println("Calling the database for fetching emr by public id");
-//        String hash = emrRepository.findPrescriptionHash(publicEmrId);
-//        File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + hash);
-//        HttpHeaders header = new HttpHeaders();
-//        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//        header.setContentDispositionFormData("attachment", prescription.getName());
-//        InputStreamResource resource = new InputStreamResource(new FileInputStream(prescription));
-//
-//        // Return ResponseEntity with InputStreamResource and headers
-//        return ResponseEntity.ok()
-//                .headers(header)
-//                .body(resource);
-//    }
+    public ResponseEntity<InputStreamResource> getPrescriptionByEmrId(UUID publicEmrId) throws FileNotFoundException {
+        System.out.println("Calling the database for fetching emr by public id");
+        UUID id = publicPrivateRepository.privateByPublicId(publicErmId);
+        String hash = emrRepository.findPrescriptionHash(publicEmrId);
+        File prescription = new File(String.valueOf(emrStorageLocation.resolve("Prescriptions")) + "/" + id +"/" + id +"/" + hash);
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        header.setContentDispositionFormData("attachment", prescription.getName());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(prescription));
+
+        // Return ResponseEntity with InputStreamResource and headers
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(resource);
+    }
 
 
-//    public ResponseEntity<InputStreamResource> getTestsByEmrId(UUID publicEmrId) throws FileNotFoundException {
-//        System.out.println("Calling the database for fetching emr by public id");
-//        String hash = emrRepository.findPrescriptionHash(publicEmrId);
-//        File prescription = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + hash);
-//        HttpHeaders header = new HttpHeaders();
-//        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//        header.setContentDispositionFormData("attachment", prescription.getName());
-//        InputStreamResource resource = new InputStreamResource(new FileInputStream(prescription));
+    public ResponseEntity<InputStreamResource> getTestsByEmrId(UUID publicEmrId) throws FileNotFoundException {
+        System.out.println("Calling the database for fetching emr by public id");
+        UUID id = publicPrivateRepository.privateByPublicId(publicErmId);
+        String hash = emrRepository.findPrescriptionHash(publicEmrId);
+        File prescription = new File(String.valueOf(emrStorageLocation.resolve("Tests")) + "/" + id +"/" + id +"/" + hash);
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        header.setContentDispositionFormData("attachment", prescription.getName());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(prescription));
+
+        // Return ResponseEntity with InputStreamResource and headers
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(resource);
+    }
 //
-//        // Return ResponseEntity with InputStreamResource and headers
-//        return ResponseEntity.ok()
-//                .headers(header)
-//                .body(resource);
-//    }
-//
-//    public ResponseEntity<InputStreamResource> getCommentsByEmrId(UUID publicEmrId) throws FileNotFoundException {
-//        System.out.println("Calling the database for fetching emr by public id");
-//        String hash = emrRepository.findCommentHash(publicEmrId);
-//        File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + hash);
-//        HttpHeaders header = new HttpHeaders();
-//        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//        header.setContentDispositionFormData("attachment", comment.getName());
-//        InputStreamResource resource = new InputStreamResource(new FileInputStream(comment));
-//
-//        // Return ResponseEntity with InputStreamResource and headers
-//        return ResponseEntity.ok()
-//                .headers(header)
-//                .body(resource);
-//    }
+    public ResponseEntity<InputStreamResource> getCommentsByEmrId(UUID publicEmrId) throws FileNotFoundException {
+        System.out.println("Calling the database for fetching emr by public id");
+        UUID id = publicPrivateRepository.privateByPublicId(publicErmId);
+        String hash = emrRepository.findCommentHash(publicEmrId);
+        File comment = new File(String.valueOf(emrStorageLocation.resolve("Comments")) + "/" + id +"/" + id +"/" + hash);
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        header.setContentDispositionFormData("attachment", comment.getName());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(comment));
+
+        // Return ResponseEntity with InputStreamResource and headers
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(resource);
+    }
 
     public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
-        UUID id = publicPrivateService.privateIdByPublicId(updateEmrDto.getPatientId());
+        UUID id = publicPrivateService.privateIdByPublicId(updateEmrDto.getPublicEmrId());
         System.out.println("Updating the emr by the id" + id);
         if (updateEmrDto.getPrescription() != null) {
             try {
@@ -554,7 +554,7 @@ public class EmrService {
                 document.setMimeType(prescriptions.getContentType());
                 document.setSize(prescriptions.getSize());
                 document.setHash();
-                Path prescriptionLocation = this.emrStorageLocation.resolve("/Prescriptions/" + id);
+                Path prescriptionLocation = this.emrStorageLocation.resolve("/Prescriptions/" + id + "/"+ id + "/");
                 storeDocument(prescriptions, prescriptionLocation, document.getHash());
                 documentRepository.save(document);
             } catch (IOException | NoSuchAlgorithmException e) {
@@ -569,7 +569,7 @@ public class EmrService {
                 comment.setMimeType(comments.getContentType());
                 comment.setSize(comments.getSize());
                 comment.setHash();
-                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + id);
+                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + id + "/" + id + "/");
                 storeDocument(comments, commentLocation, comment.getHash());
                 documentRepository.save(comment);
 //                comment.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
@@ -585,7 +585,7 @@ public class EmrService {
                 test.setMimeType(tests.getContentType());
                 test.setSize(tests.getSize());
                 test.setHash();
-                Path commentLocation = this.emrStorageLocation.resolve("Tests/" + id + "/");
+                Path commentLocation = this.emrStorageLocation.resolve("Tests/" + id + "/" + id + "/");
                 storeDocument(tests, commentLocation, test.getHash());
                 documentRepository.save(test);
             } catch (IOException | NoSuchAlgorithmException e){

@@ -1,16 +1,21 @@
 package com.example.EMR.models;
 
+import com.example.EMR.converter.StringCryptoConverter;
+import com.example.EMR.models.Patient_Department;
 import jakarta.persistence.*;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import com.example.EMR.converter.StringCryptoConverter;
+import com.example.EMR.converter.ObjectCryptoConverter;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
-
-import com.example.EMR.converter.StringCryptoConverter;
-
-import java.util.List;
-import java.util.UUID;
 
 
 
@@ -27,7 +32,7 @@ public class Patient
     }
 
     public enum PatientType {
-        INPATIENT, OUTPATIENT
+        INPATIENT, OUTPATIENT, NOT_VERIFIED //NOT_VERIFIED means either patient is deleted or not verified yet
     }
 
     public enum DischargeStatus {
@@ -52,9 +57,9 @@ public class Patient
     @Column(name = "aabhaId", nullable = false )
     private String aabhaId;
 
-    @Convert(converter = StringCryptoConverter.class)
-    @Column(name = "aadharId", nullable = false )
-    private String aadharId;
+    // @Convert(converter = StringCryptoConverter.class)
+    // @Column(name = "aadharId", nullable = false )
+    // private String aadharId;
 
     @Convert(converter = StringCryptoConverter.class)
     @Column(name = "emailId", nullable = false )
@@ -82,6 +87,4 @@ public class Patient
     @OneToMany(mappedBy = "patient", cascade = CascadeType.REMOVE)
     private List<Patient_Department> patientDepartments;
 
-    @OneToMany(mappedBy = "patient")
-    private List<Consultation> consultations;
 }

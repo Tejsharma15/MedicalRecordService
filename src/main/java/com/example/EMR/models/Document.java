@@ -69,8 +69,7 @@ public class Document {
     }
 
     public void setHash() throws NoSuchAlgorithmException {
-        String transformedName = this.name + this.mimeType + this.size +
-                new Date().getTime();
+        String transformedName = this.name + new Date().getTime();
         MessageDigest messageDigest = MessageDigest.getInstance("MD5");
         messageDigest.update(transformedName.getBytes(StandardCharsets.UTF_8));
         this.hash = new BigInteger(1, messageDigest.digest()).toString(RADIX);

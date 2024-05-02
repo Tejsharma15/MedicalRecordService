@@ -13,6 +13,8 @@ import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -159,5 +161,16 @@ public class ConsultationService {
 
     public UUID getPatientIdByConsultationId(UUID consultationId) {
         return consultationRepository.getPatientIdByConsultationId(consultationId);
+    }
+
+    public ResponseEntity<?> updateConsultation(UpdateConsultationDto updateConsultationDto) {
+        //does 2 things. 1) Delete existing patient-doctor pair and 2) Add new pair
+        UUID patientPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
+        UUID doctorNewPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getNewDoctorId());
+        UUID doctorPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getDoctorId());
+
+        patientDoctorService.addPatient_Doctor(patientPvtId, doctorNewPvtId);
+        patientDoctorService.deletePatient_Doctor(patientPvtId, doctorPvtId);
+        return new ResponseEntity<>("Successfully updated consultation", HttpStatus.OK);
     }
 }

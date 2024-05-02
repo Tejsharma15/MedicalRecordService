@@ -48,4 +48,12 @@ public class Patient_DoctorService {
         patientDoctor.setDoctor(doctor);
         patientDoctorRepository.save(patientDoctor);
     }
+
+    public void deletePatient_Doctor(UUID patientId, UUID doctorId){
+        User doctor = employeeRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not exist with id " + doctorId));
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not exist with id " + patientId));
+        patientDoctorRepository.deleteByPatientIdAndDoctorId(patientId, doctorId);
+    }
 }

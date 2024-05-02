@@ -12,14 +12,14 @@ import java.util.UUID;
 @Repository
 public interface EmrRepository extends JpaRepository<Emr,UUID> {
 
-//    @Query("SELECT e.comments FROM Emr e WHERE e.publicEmrId = :emrId")
-//    String findCommentHash(UUID emrId);
-//
-//    @Query("SELECT e.tests FROM Emr e WHERE e.publicEmrId = :emrId")
-//    String findTestHash(UUID emrId);
-//
-//    @Query("SELECT e.prescription FROM Emr e WHERE e.publicEmrId = :emrId")
-//    String findPrescriptionHash(UUID emrId);
+    @Query("SELECT e.comments FROM Emr e WHERE e.publicEmrId = :emrId")
+    String findCommentHash(UUID emrId);
+
+    @Query("SELECT e.tests FROM Emr e WHERE e.publicEmrId = :emrId")
+    String findTestHash(UUID emrId);
+
+    @Query("SELECT e.prescription FROM Emr e WHERE e.publicEmrId = :emrId")
+    String findPrescriptionHash(UUID emrId);
     @Modifying
     @Query("UPDATE  Emr e SET e.lastUpdate = :timeVal where e.emrId = :emrId")
     void updateLastUpdate(UUID emrId, Long timeVal);
