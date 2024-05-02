@@ -1,6 +1,7 @@
 package com.example.EMR.controller;
 
-import com.example.EMR.configuration.JwtService;
+import com.example.EMR.Exception.ResourceNotFoundException;
+import com.example.EMR.dto.UpdateEmrDto;
 import com.example.EMR.dto.UpdateEmrDtoText;
 import com.example.EMR.logging.LogService;
 import com.example.EMR.service.EmrService;
@@ -40,51 +41,83 @@ public class EmrController {
     @PreAuthorize("hasAuthority('prescription:read') or hasAuthority('patient:read')")
     public ResponseEntity<?> getPrescriptionsEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException{
         System.out.println("Returning Prescription BY ID");
-        logService.addLog("INFO", "GET: Prescription by EMR ID", null, emrService.getPatientIdByEmrId(emrId));
-        return emrService.getPrescriptionByEmrIdText(emrId);
+        UUID privateId = null;
+        try{
+            privateId = emrService.getPatientIdByEmrId(emrId);
+            if(privateId == null){
+                logService.addLog("ERROR", "GET: Prescription by EMR ID, ", null, privateId);
+                return new ResponseEntity<>("Could not find Prescription by EMR ID"+emrId, HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "GET: Prescription by EMR ID", null, privateId);
+            return emrService.getPrescriptionByEmrIdText(emrId);
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "GET: Prescription by EMR ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not find Prescription by EMR ID"+emrId, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/getCommentsByEmrId/{emrId}")
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getCommentsByEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException {
         System.out.println("Returning Comments BY ID");
-        logService.addLog("INFO", "GET: Comments by EMR ID", null, emrService.getPatientIdByEmrId(emrId));
-        return emrService.getCommentsByEmrIdText(emrId);
+        UUID privateId = null;
+        try{
+            privateId = emrService.getPatientIdByEmrId(emrId);
+            if(privateId == null){
+                logService.addLog("ERROR", "GET: Comments by EMR ID, ", null, privateId);
+                return new ResponseEntity<>("Could not find Comments by EMR ID"+emrId, HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "GET: Comments by EMR ID", null, privateId);
+            return emrService.getCommentsByEmrIdText(emrId);
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "GET: Comments by EMR ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not find Comments by EMR ID"+emrId, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/getEmrByPatientIdText/{patientId}")
     @PreAuthorize("hasAuthority('patient:read')")
     public ResponseEntity<?> getEmrByPatientIdText(@PathVariable("patientId") String patientId) throws IOException {
         System.out.println("Returning EMR");
-        logService.addLog("INFO", "GET: EMR by Patient ID", null, publicPrivateService.privateIdByPublicId(patientId));
-        try {
+        UUID privateId = null;
+        try{
+            privateId = publicPrivateService.privateIdByPublicId(patientId);
+            if(privateId == null){
+                logService.addLog("ERROR", "GET:EMR by Patient ID, ", null, privateId);
+                return new ResponseEntity<>("Could not find Emr by Patient ID"+patientId, HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "GET: EMR by Patient ID", null, privateId);
             return emrService.getEmrByPatientIdText(patientId);
-        } catch (FileNotFoundException e) {
-            // Handle file not found error
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "File not found"));
-        } catch (IOException e) {
-            // Handle other IO exceptions
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "File not found"));
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "GET: EMR by Patient ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not find EMR by Patient ID"+patientId, HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping("/getEmrByEmrIdText/{emrId}")
     @PreAuthorize("hasAuthority('patient:read')")
-    public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") String emrId) throws IOException {
+    public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") String emrId) throws ResourceNotFoundException {
         System.out.println("Returning EMR");
-        logService.addLog("INFO", "GET: EMR by Public EMR ID", null, emrService.getPatientIdByEmrId(emrId));
-        try {
+        UUID privateId = null;
+        try{
+            privateId = emrService.getPatientIdByEmrId(emrId);
+            if(privateId == null){
+                logService.addLog("ERROR", "GET: EMR by Public EMR ID", null, privateId);
+                return new ResponseEntity<>("Could not find EMR by Public EMR ID"+emrId, HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "GET: EMR by Public EMR ID", null, privateId);
             return emrService.getEmrByEmrIdText(emrId);
-        } catch (FileNotFoundException e) {
-            // Handle file not found error
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "File not found"));
-        } catch (IOException e) {
-            // Handle other IO exceptions
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "File not found"));
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "GET: EMR by Public EMR ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not find EMR by Public EMR ID"+emrId, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -104,16 +137,61 @@ public class EmrController {
     @PreAuthorize("hasAuthority('patient:update')")
     public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
         System.out.println("Updating emr by id");
-        logService.addLog("INFO", "PUT: Update by EMR ID", null, emrService.getPatientIdByEmrId(updateEmrDtoText.getPublicEmrId()));
-        return emrService.updateEmrByIdText(updateEmrDtoText);
+        UUID privateId = null;
+        try{
+            privateId = emrService.getPatientIdByEmrId(updateEmrDtoText.getPublicEmrId());
+            if(privateId == null){
+                logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
+                return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDtoText.getPublicEmrId(), HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
+            return emrService.updateEmrByIdText(updateEmrDtoText);
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "PUT: Update by EMR ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDtoText.getPublicEmrId(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/updateEmrById")
+    @PreAuthorize("hasAuthority('patient:update')")
+    public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDto updateEmrDto) throws NoSuchAlgorithmException {
+        System.out.println("Updating emr by id");
+        UUID privateId = null;
+        try{
+            privateId = emrService.getPatientIdByEmrId(updateEmrDto.getPublicEmrId());
+            if(privateId == null){
+                logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
+                return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
+            }
+            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
+            return emrService.updateEmrById(updateEmrDto);
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "PUT: Update by EMR ID, "+e, null, privateId);
+            }
+            return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/deleteEmrByPatientId/{patientId}")
     @PreAuthorize("hasAuthority('patient:delete')")
     public ResponseEntity<?> deleteEmrByPatientId(@PathVariable("patientId") String patientId){
         System.out.println("Deleting emr by id");
-        logService.addLog("INFO", "PUT: Delete by EMR ID", null, publicPrivateService.privateIdByPublicId(patientId));
-        return emrService.deleteEmrByPatientId(patientId);
+        UUID privateId = null;
+        try{
+            privateId =  publicPrivateService.privateIdByPublicId(patientId);
+            logService.addLog("INFO", "PUT: Delete by EMR ID", null, privateId);
+            return emrService.deleteEmrByPatientId(patientId);
+        }catch(Exception e){
+            if(privateId != null){
+                logService.addLog("ERROR", "GET: Prescription by EMR ID, "+e, null, privateId);
+            }
+            else
+                logService.addLog("ERROR", "GET: Prescription by EMR ID, "+e, null, privateId);
+            return new ResponseEntity<>("Could not Delete by Patient ID"+patientId, HttpStatus.NOT_FOUND);
+        }
     }
 }
 

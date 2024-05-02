@@ -96,7 +96,8 @@ public class ConsultationService {
         System.out.println("doc: " + consultation.getDoctor().getEmployeeId());
         System.out.println("pat: " + consultation.getPatient().getPatientId());
         System.out.println("id: " + consultation.getEmrId());
-        consultationRepository.save(consultation);
+        UUID c_id = consultationRepository.save(consultation).getConsultationId();
+        String publicConsultationId = publicPrivateService.savePublicPrivateId(c_id, "CONSULTATION");
         patientDoctorService.addPatient_Doctor(patientPvtId, doctorPvtId);
         List<Employee_Department> u = employeeDepartmentRepository.findDepartmentsByEmployee(doctor);
         for (int i = 0; i < u.size(); i++) {
@@ -106,7 +107,7 @@ public class ConsultationService {
         System.out.println("Added to dependency tables");
         ConsultationCreationDto consultationCreationDto = new ConsultationCreationDto();
         consultationCreationDto.setPublicEmrId(consultation.getEmrId());
-        consultationCreationDto.setConsultationId(consultation.getConsultationId());
+        consultationCreationDto.setConsultationId(publicConsultationId);
         return  ResponseEntity.ok(consultationCreationDto);
     }
 
@@ -121,11 +122,12 @@ public class ConsultationService {
                 }).collect(Collectors.toList()));
     }
 
-    public ResponseEntity<ConsultationRequestDto> getConsultationById(UUID consultationId)
+    public ResponseEntity<ConsultationRequestDto> getConsultationById(String consultationId)
             throws ResourceNotFoundException {
-        Optional<Consultation> obj = consultationRepository.findById(consultationId);
+        UUID c_id = publicPrivateService.privateIdByPublicId(consultationId);
+        Optional<Consultation> obj = consultationRepository.findById(c_id);
         if (obj.isEmpty()) {
-            throw new ResourceNotFoundException("No consultation found for the id: " + consultationId.toString());
+            throw new ResourceNotFoundException("No consultation found for the id: " + consultationId);
         }
         ConsultationRequestDto consultationRequestDto = convertConsultationToRequestDto(obj.get());
         return ResponseEntity.ok(consultationRequestDto);

@@ -82,4 +82,6 @@ public class Patient
     @OneToMany(mappedBy = "patient", cascade = CascadeType.REMOVE)
     private List<Patient_Department> patientDepartments;
 
+    @OneToMany(mappedBy = "patient")
+    private List<Consultation> consultations;
 }

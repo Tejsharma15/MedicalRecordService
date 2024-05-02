@@ -8,6 +8,6 @@ import java.util.UUID;
 
 @Data
 public class ConsultationCreationDto implements Serializable {
-    private UUID consultationId;
+    private String consultationId;
     private String publicEmrId;
 }

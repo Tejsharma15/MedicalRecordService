@@ -1,6 +1,8 @@
 package com.example.EMR.service;
 
+import com.example.EMR.Exception.ResourceNotFoundException;
 import com.example.EMR.dto.CreateEmrDtoText;
+import com.example.EMR.dto.UpdateEmrDto;
 import com.example.EMR.dto.UpdateEmrDtoText;
 import com.example.EMR.models.Document;
 import com.example.EMR.models.Emr;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -248,7 +251,7 @@ public class EmrService {
         return ResponseEntity.ok().body(fileTextMap);
     }
 
-    public ResponseEntity<Map<String, String>> getEmrByEmrIdText(String publicEmrId) throws IOException{
+    public ResponseEntity<?> getEmrByEmrIdText(String publicEmrId) throws IOException{
         UUID emrId = publicPrivateService.privateIdByPublicId(publicEmrId);
         // Define the categories and corresponding file paths
         String[] categories = {"Prescriptions", "Comments", "Tests"};
@@ -272,7 +275,7 @@ public class EmrService {
                         });
 //                nestedMap.put(category, fileTextMap);
             } catch (IOException e) {
-                System.out.println("empty");
+                throw new ResourceNotFoundException("Can't find records for the emr: "+publicEmrId);
             }
         }
 
@@ -426,12 +429,12 @@ public class EmrService {
 //        return outputStream.toByteArray();
 //    }
 
-//    private void storeDocument(MultipartFile file, Path targetLocation, String hash) throws IOException{
-//        if (!Files.exists(targetLocation)) {
-//            Files.createDirectories(targetLocation);
-//        }
-//        Files.copy(file.getInputStream(), targetLocation.resolve(hash));
-//    }
+    private void storeDocument(MultipartFile file, Path targetLocation, String hash) throws IOException{
+        if (!Files.exists(targetLocation)) {
+            Files.createDirectories(targetLocation);
+        }
+        Files.copy(file.getInputStream(), targetLocation.resolve(hash));
+    }
 //
 //    public ResponseEntity<String> insertNewEmr(EmrDto emrDto) {
 //        System.out.println("Converting the EmrDto to storable entity");
@@ -540,63 +543,63 @@ public class EmrService {
 //                .body(resource);
 //    }
 
-//    public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
-//        UUID id = updateEmrDto.getPublicEmrId();
-//        System.out.println("Updating the emr by the id" + id);
-//        if (updateEmrDto.getPrescription() != null) {
-//            try {
-//                MultipartFile prescriptions = updateEmrDto.getPrescription();
-//                Document document = new Document();
-//                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + updateEmrDto.getPatientId().toString() + prescriptions.getOriginalFilename());
-//                document.setMimeType(prescriptions.getContentType());
-//                document.setSize(prescriptions.getSize());
-//                document.setHash();
-//                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/" + updateEmrDto.getPatientId());
-//                storeDocument(prescriptions, prescriptionLocation, document.getHash());
-//                documentRepository.save(document);
-//            } catch (IOException | NoSuchAlgorithmException e) {
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
-//            }
-//        }
-//        if(updateEmrDto.getComments() != null) {
-//            try{
-//                MultipartFile comments = updateEmrDto.getComments();
-//                Document comment = new Document();
-//                comment.setName(this.emrStorageLocation.toString() + "/Comments/" + updateEmrDto.getPatientId().toString() + comments.getOriginalFilename());
-//                comment.setMimeType(comments.getContentType());
-//                comment.setSize(comments.getSize());
-//                comment.setHash();
-//                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + updateEmrDto.getPatientId());
-//                storeDocument(comments, commentLocation, comment.getHash());
-//                documentRepository.save(comment);
-////                comment.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
-//            } catch (IOException | NoSuchAlgorithmException e){
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
-//            }
-//        }
-//        if(updateEmrDto.getTests() != null) {
-//            try{
-//                MultipartFile tests = updateEmrDto.getTests();
-//                Document test = new Document();
-//                test.setName(this.emrStorageLocation.toString() + "/Tests/" + updateEmrDto.getPatientId().toString() + tests.getOriginalFilename());
-//                test.setMimeType(tests.getContentType());
-//                test.setSize(tests.getSize());
-//                test.setHash();
-//                Path commentLocation = this.emrStorageLocation.resolve("Tests/" + updateEmrDto.getPatientId());
-//                storeDocument(tests, commentLocation, test.getHash());
-//                documentRepository.save(test);
-//            } catch (IOException | NoSuchAlgorithmException e){
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
-//            }
-//        }
-//
-//        try{
-//            System.out.println("Updating values as: " + updateEmrDto.getAccessList()+" "+updateEmrDto.getAccessDepartments() + updateEmrDto.getPublicEmrId());
-//            emrRepository.updateVals(updateEmrDto.getAccessList(), updateEmrDto.getAccessDepartments(), updateEmrDto.getPublicEmrId());
-//            emrRepository.updateLastUpdate(updateEmrDto.getPublicEmrId(), System.currentTimeMillis() / 1000);
-//        }catch(Exception e){
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
-//    }
+    public ResponseEntity<String> updateEmrById (UpdateEmrDto updateEmrDto) {
+        UUID id = publicPrivateService.privateIdByPublicId(updateEmrDto.getPatientId());
+        System.out.println("Updating the emr by the id" + id);
+        if (updateEmrDto.getPrescription() != null) {
+            try {
+                MultipartFile prescriptions = updateEmrDto.getPrescription();
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/" + id);
+                document.setMimeType(prescriptions.getContentType());
+                document.setSize(prescriptions.getSize());
+                document.setHash();
+                Path prescriptionLocation = this.emrStorageLocation.resolve("/Prescriptions/" + id);
+                storeDocument(prescriptions, prescriptionLocation, document.getHash());
+                documentRepository.save(document);
+            } catch (IOException | NoSuchAlgorithmException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
+            }
+        }
+        if(updateEmrDto.getComments() != null) {
+            try{
+                MultipartFile comments = updateEmrDto.getComments();
+                Document comment = new Document();
+                comment.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/" + id);
+                comment.setMimeType(comments.getContentType());
+                comment.setSize(comments.getSize());
+                comment.setHash();
+                Path commentLocation = this.emrStorageLocation.resolve("Comments/" + id);
+                storeDocument(comments, commentLocation, comment.getHash());
+                documentRepository.save(comment);
+//                comment.setPatientId(emrRepository.getPrivatePatientId(emrDto.getPatientId()));
+            } catch (IOException | NoSuchAlgorithmException e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
+            }
+        }
+        if(updateEmrDto.getTests() != null) {
+            try{
+                MultipartFile tests = updateEmrDto.getTests();
+                Document test = new Document();
+                test.setName(this.emrStorageLocation.toString() + "/Tests/" +  id + "/" + id);
+                test.setMimeType(tests.getContentType());
+                test.setSize(tests.getSize());
+                test.setHash();
+                Path commentLocation = this.emrStorageLocation.resolve("Tests/" + id + "/");
+                storeDocument(tests, commentLocation, test.getHash());
+                documentRepository.save(test);
+            } catch (IOException | NoSuchAlgorithmException e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating columns" );
+            }
+        }
+
+        try{
+            System.out.println("Updating values as: " + updateEmrDto.getAccessList()+" "+updateEmrDto.getAccessDepartments() + updateEmrDto.getPublicEmrId());
+            emrRepository.updateVals(updateEmrDto.getAccessList(), updateEmrDto.getAccessDepartments(), updateEmrDto.getPublicEmrId());
+            emrRepository.updateLastUpdate(updateEmrDto.getPublicEmrId(), System.currentTimeMillis() / 1000);
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
+    }
 }
