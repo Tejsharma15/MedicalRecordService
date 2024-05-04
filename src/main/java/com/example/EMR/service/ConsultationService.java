@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.security.NoSuchAlgorithmException;
@@ -208,6 +209,16 @@ public class ConsultationService {
         if(c.getSeverity() == Consultation.Severity.HIGH) return new ResponseEntity<>("HIGH", HttpStatus.OK);
         return new ResponseEntity<>("MEDIUM", HttpStatus.OK);
 
+    }
+
+    public Consultation.Severity getSeverityPatient(UUID PatientId) {
+//        System.out.println(consultationId);
+
+        Optional<Consultation> consultation = consultationRepository.findByPatientId(PatientId);
+        if(consultation.isEmpty()){
+            throw new IllegalArgumentException("Consultation with id " + PatientId + " not found");
+        }
+        return consultation.get().getSeverity();
     }
     public Map<String, String> getAllConsultationsWithSeverity() {
         List<Consultation> consultations = consultationRepository.findAll();
