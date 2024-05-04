@@ -53,7 +53,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET: Prescription by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Prescription by EMR ID"+emrId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: Prescription by EMR ID", null, privateId);
+            logService.addLog("APP", "Viewed Prescriptions", null, privateId);
             return emrService.getPrescriptionByEmrIdText(emrId);
         }catch(Exception e){
             if(privateId != null){
@@ -75,7 +75,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET: Comments by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Comments by EMR ID"+emrId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: Comments by EMR ID", null, privateId);
+            logService.addLog("APP", "Viewed Comments", null, privateId);
             return emrService.getCommentsByEmrIdText(emrId);
         }catch(Exception e){
             if(privateId != null){
@@ -97,7 +97,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET:EMR by Patient ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Emr by Patient ID"+patientId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: EMR by Patient ID", null, privateId);
+            logService.addLog("APP", "Viewed Patient EMR", null, privateId);
             return emrService.getEmrByPatientIdText(patientId);
         }catch(Exception e){
             if(privateId != null){
@@ -119,7 +119,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET: EMR by Public EMR ID", null, privateId);
                 return new ResponseEntity<>("Could not find EMR by Public EMR ID"+emrId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: EMR by Public EMR ID", null, privateId);
+            logService.addLog("APP", "Viewed patient EMR", null, privateId);
             return emrService.getEmrByEmrIdText(emrId);
         }catch(Exception e){
             if(privateId != null){
@@ -136,7 +136,7 @@ public class EmrController {
 //        String username = UUID.randomUUID().toString();
 //        ThreadContext.put("actorUUID", username);
 //        System.out.println(ThreadContext.get("actorUUID"));
-//        logger.info("Inserting a new emr record provided");
+//        logger.APP("Inserting a new emr record provided");
 //        ThreadContext.clearAll();
 //        return emrService.insertNewEmr(emrDto);
 //    }
@@ -153,7 +153,7 @@ public class EmrController {
                 logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDtoText.getPublicEmrId(), HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
+            logService.addLog("APP", "Edited EMR", null, privateId);
             return emrService.updateEmrByIdText(updateEmrDtoText);
         }catch(Exception e){
             if(privateId != null){
@@ -175,7 +175,7 @@ public class EmrController {
 //                logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
 //                return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
 //            }
-//            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
+//            logService.addLog("APP", "PUT: Update by EMR ID", null, privateId);
 //            return emrService.updateEmrById(updateEmrDto);
 //        }catch(Exception e){
 //            if(privateId != null){
@@ -193,14 +193,14 @@ public class EmrController {
         try{
             privateId =  publicPrivateService.privateIdByPublicId(patientId);
             if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
-            logService.addLog("INFO", "PUT: Delete by EMR ID", null, privateId);
+            logService.addLog("APP", "Deleted EMR", null, privateId);
             return emrService.deleteEmrByPatientId(patientId);
         }catch(Exception e){
             if(privateId != null){
-                logService.addLog("ERROR", "GET: Prescription by EMR ID, "+e, null, privateId);
+                logService.addLog("ERROR", "DELETE: Delete patient record "+e, null, privateId);
             }
             else
-                logService.addLog("ERROR", "GET: Prescription by EMR ID, "+e, null, privateId);
+                logService.addLog("ERROR", "DELETE: Delete patient record"+e, null, privateId);
             return new ResponseEntity<>("Could not Delete by Patient ID"+patientId, HttpStatus.NOT_FOUND);
         }
     }

@@ -61,7 +61,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "POST: Adding a consultation, ", null, privateId);
                 return new ResponseEntity<>("Could not Add consultation for patient id:"+ consultationDto.getPatientId(), HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "POST: Adding consultation", null, privateId);
+            logService.addLog("APP", "Added a new consultation", null, privateId);
             return consultationService.addConsultation(consultationDto);
         }catch (Exception e){
             if(privateId!=null)
@@ -73,7 +73,7 @@ public class ConsultationController {
     @GetMapping("/getAllConsultations")
     @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<List<ConsultationRequestDto>> getAllConsultations(){
-        logService.addLog("INFO", "GET: All consultation", null, null);
+        logService.addLog("APP", "Viewed all consultations", null, null);
         return consultationService.getAllConsultations();
     }
 
@@ -88,7 +88,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "GET: Consultation by ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find consultation with id: " + consultationId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: Consultation by Id", null, privateId);
+            logService.addLog("APP", "Viewed consultation", null, privateId);
             return consultationService.getConsultationById(consultationId);
         }catch (Exception e){
             if(privateId!=null)
@@ -111,7 +111,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "GET: EMR by Patient and Doctor, ", null, patientPvtId);
                 return new ResponseEntity<>("Could not find EMR by doctor and patient"+ patientId +" "+doctorId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "GET: EMR by Patient and Doctor", null, null);
+            logService.addLog("APP", "Accessed EMR ID for consultation", null, null);
             return ResponseEntity.ok(consultationService.getEmrIdByPatientIdAndDoctorId(patientPvtId, doctorPvtId));
         }catch (Exception e){
             if(patientPvtId!=null && doctorPvtId != null)
@@ -135,7 +135,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "PUT: Updating a consultation, ", null, privateId);
                 return new ResponseEntity<>("Could not Update consultation for patient id:"+ updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
             }
-            logService.addLog("INFO", "POST: update consultation", null, privateId);
+            logService.addLog("APP", "Updated consultation", null, privateId);
             return consultationService.updateConsultation(updateConsultationDto);
         }catch (Exception e){
             if(privateId!=null)
@@ -154,7 +154,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "PUT: Update Severity", null, privateId);
                 return new ResponseEntity<>("Could not update severity for this consultation", HttpStatus.BAD_REQUEST);
             }
-            logService.addLog("INFO", "PUT: Update Severity", null, privateId);
+            logService.addLog("APP", "Updated patient status", null, privateId);
             return consultationService.updateSeverity(updateSeverityStatusDto);
         } catch(Exception e){
             if(updateSeverityStatusDto.getConsultationId() != null){
@@ -175,7 +175,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "PUT: Update Severity", null, privateId);
                 return new ResponseEntity<>("Could not update severity for this consultation", HttpStatus.BAD_REQUEST);
             }
-            logService.addLog("INFO", "PUT: Update Severity", null, privateId);
+            logService.addLog("APP", "Viewed Patient Status", null, privateId);
             return consultationService.getSeverity(privateId);
         } catch(Exception e){
             if(consultationId != null){
@@ -192,7 +192,7 @@ public class ConsultationController {
         try {
             Map<String, String> consultationSeverities = consultationService.getAllConsultationsWithSeverity();
             // Log successful retrieval of severities if needed
-            logService.addLog("INFO", "Retrieved all patient severities", null, null);
+            logService.addLog("APP", "Retrieved all patient severities", null, null);
             return ResponseEntity.ok(consultationSeverities);
         } catch (Exception e) {
             // Log any errors that occur during retrieval
