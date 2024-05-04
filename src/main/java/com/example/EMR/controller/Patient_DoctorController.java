@@ -8,15 +8,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
-
+@RestController
+@RequestMapping("/patientDoctor")
 public class Patient_DoctorController {
     @Autowired
     private Patient_DoctorService patientDoctorService;
     @Autowired
     private PublicPrivateService publicPrivateService;
-    @GetMapping("getAllInpatientsByDoctorID/{doctorId}")
+    @GetMapping("/getAllInpatientsByDoctorID/{doctorId}")
     @PreAuthorize("hasAuthority('doctor:read')")
     public ResponseEntity<?> getAllInpatientsByDoctorID(@PathVariable String doctorId) {
         try {
@@ -28,7 +31,7 @@ public class Patient_DoctorController {
         }
     }
 
-    @GetMapping("getAllOutpatientsByDoctorID/{doctorId}")
+    @GetMapping("/getAllOutpatientsByDoctorID/{doctorId}")
     @PreAuthorize("hasAuthority('doctor:read')")
     public ResponseEntity<?> getAllOutpatientsByDoctorID(@PathVariable String doctorId) {
         try {

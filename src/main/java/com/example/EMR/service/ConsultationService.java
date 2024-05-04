@@ -210,7 +210,6 @@ public class ConsultationService {
         return new ResponseEntity<>("MEDIUM", HttpStatus.OK);
 
     }
-
     public Consultation.Severity getSeverityPatient(UUID PatientId) {
 //        System.out.println(consultationId);
 

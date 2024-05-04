@@ -49,6 +49,8 @@ public class SecurityConfiguration {
                                .requestMatchers("/consultation/updateSeverity").hasAnyAuthority(PATIENT_UPDATE.getPermission())
                                .requestMatchers("/consultation/reassignDoctor").hasAnyAuthority(DESK_UPDATE.getPermission())
                                .requestMatchers("/consultation/getAllSeverity").hasAnyAuthority(PATIENT_READ.getPermission())
+                               .requestMatchers("/patientDoctor/getAllOutpatientsByDoctorID/{doctorId}").hasAnyAuthority(DOCTOR_READ.getPermission())
+                               .requestMatchers("/patientDoctor/getAllInpatientsByDoctorID/{doctorId}").hasAnyAuthority(DOCTOR_READ.getPermission())
                                .anyRequest()
                                .authenticated()
                )

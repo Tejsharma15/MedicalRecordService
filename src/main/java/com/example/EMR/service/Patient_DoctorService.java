@@ -6,8 +6,10 @@ import com.example.EMR.models.CompositePrimaryKeys.Patient_DoctorId;
 import com.example.EMR.models.Consultation;
 import com.example.EMR.models.Consultation.Severity;
 import com.example.EMR.models.Patient;
+import com.example.EMR.models.Patient.*;
 import com.example.EMR.models.Patient_Doctor;
 import com.example.EMR.models.User;
+import com.example.EMR.repository.ConsultationRepository;
 import com.example.EMR.repository.PatientDoctorRepository;
 import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.repository.UserRepository;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,16 +28,18 @@ import java.util.stream.Collectors;
 public class Patient_DoctorService {
     private final UserRepository employeeRepository;
 
-    private final ConsultationService consultationService;
+    private final ConsultationRepository consultationRepository;
     private final PatientRepository patientRepository;
     private final PatientDoctorRepository patientDoctorRepository;
+    private final PublicPrivateService publicPrivateService;
 
     @Autowired
-    public Patient_DoctorService(UserRepository userRepository, ConsultationService consultationService, PatientRepository patientRepository, PatientDoctorRepository patientDoctorRepository){
+    public Patient_DoctorService(UserRepository userRepository, ConsultationRepository consultationRepository, PatientRepository patientRepository, PatientDoctorRepository patientDoctorRepository, PublicPrivateService publicPrivateService){
         this.employeeRepository = userRepository;
-        this.consultationService = consultationService;
+        this.consultationRepository = consultationRepository;
         this.patientRepository = patientRepository;
         this.patientDoctorRepository = patientDoctorRepository;
+        this.publicPrivateService = publicPrivateService;
     }
     public void addPatient_Doctor(UUID patientId, UUID doctorId) {
         // Check if the patient and doctor exist
@@ -94,7 +99,7 @@ public class Patient_DoctorService {
             return ResponseEntity.ok(
                     patients.stream()
                             .map(patient -> {
-                                Consultation.Severity sev = consultationService.getSeverityPatient(patient.getPatientId());
+                                Consultation.Severity sev = getSeverityPatient(patient.getPatientId());
                                 PatientRequestSeverityDto dto = convertPatientToDto(patient, sev);
                                 return dto;
                             }).collect(Collectors.toList()));
@@ -112,10 +117,19 @@ public class Patient_DoctorService {
             return ResponseEntity.ok(
                     patients.stream()
                             .map(patient -> {
-                                Consultation.Severity sev = consultationService.getSeverityPatient(patient.getPatientId());
+                                Consultation.Severity sev = getSeverityPatient(patient.getPatientId());
                                 PatientRequestSeverityDto dto = convertPatientToDto(patient, sev);
                                 return dto;
                             }).collect(Collectors.toList()));
         }
+    }
+    public Consultation.Severity getSeverityPatient(UUID PatientId) {
+//        System.out.println(consultationId);
+
+        Optional<Consultation> consultation = consultationRepository.findByPatientId(PatientId);
+        if(consultation.isEmpty()){
+            throw new IllegalArgumentException("Consultation with id " + PatientId + " not found");
+        }
+        return consultation.get().getSeverity();
     }
 }

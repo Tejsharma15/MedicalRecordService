@@ -16,6 +16,7 @@ public interface PatientDoctorRepository extends JpaRepository<Patient_Doctor, P
     @Query("DELETE from Patient_Doctor pd where pd.patient.patientId = :patientId and pd.doctor.employeeId = :doctorId")
     void deleteByPatientIdAndDoctorId(UUID patientId, UUID doctorId);
 
-    @Query("SELECT from * Patient_Doctor pd where pd.doctor.doctorId = :doctorId")
+    @Query("SELECT pd FROM Patient_Doctor pd WHERE pd.doctor.employeeId = :doctorId")
     List<Patient_Doctor> findByDoctorId(UUID doctorId);
+
 }
