@@ -9,9 +9,7 @@ import java.io.Serializable;
 @Data
 @Getter
 @Setter
-public class UpdateConsultationDto implements Serializable {
-    private String patientId;
-    private String doctorId;
-    private String newDoctorId;
+public class UpdateSeverityStatusDto implements Serializable {
     private String consultationId;
+    private String status;
 }

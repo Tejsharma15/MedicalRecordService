@@ -16,6 +16,10 @@ import java.util.UUID;
 @ToString
 @Table(name="consultation")
 public class Consultation {
+
+    public enum Severity{
+        LOW, MEDIUM, HIGH
+    }
     public Consultation() {
 
     }
@@ -44,4 +48,8 @@ public class Consultation {
 
     @Column(name="ConsultationStatus",nullable=false)
     private Boolean isActive;
+
+    @Column(name="Severity", nullable = true)
+    @Enumerated(EnumType.STRING)
+    private Severity severity;
 }

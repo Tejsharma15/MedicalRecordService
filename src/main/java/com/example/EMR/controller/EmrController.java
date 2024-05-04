@@ -163,27 +163,27 @@ public class EmrController {
         }
     }
 
-    @PutMapping("/updateEmrById")
-    @PreAuthorize("hasAuthority('patient:update')")
-    public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDto updateEmrDto) throws NoSuchAlgorithmException {
-        System.out.println("Updating emr by id");
-        UUID privateId = null;
-        try{
-            privateId = emrService.getPatientIdByEmrId(updateEmrDto.getPublicEmrId());
-            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
-            if(privateId == null){
-                logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
-                return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
-            }
-            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
-            return emrService.updateEmrById(updateEmrDto);
-        }catch(Exception e){
-            if(privateId != null){
-                logService.addLog("ERROR", "PUT: Update by EMR ID, "+e, null, privateId);
-            }
-            return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
-        }
-    }
+//    @PutMapping("/updateEmrById")
+//    @PreAuthorize("hasAuthority('patient:update')")
+//    public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDto updateEmrDto) throws NoSuchAlgorithmException {
+//        System.out.println("Updating emr by id");
+//        UUID privateId = null;
+//        try{
+//            privateId = emrService.getPatientIdByEmrId(updateEmrDto.getPublicEmrId());
+//            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
+//            if(privateId == null){
+//                logService.addLog("ERROR", "PUT: Update by EMR ID, ", null, privateId);
+//                return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
+//            }
+//            logService.addLog("INFO", "PUT: Update by EMR ID", null, privateId);
+//            return emrService.updateEmrById(updateEmrDto);
+//        }catch(Exception e){
+//            if(privateId != null){
+//                logService.addLog("ERROR", "PUT: Update by EMR ID, "+e, null, privateId);
+//            }
+//            return new ResponseEntity<>("Could not Update by EMR ID"+updateEmrDto.getPublicEmrId(), HttpStatus.NOT_FOUND);
+//        }
+//    }
 
     @PutMapping("/deleteEmrByPatientId/{patientId}")
     @PreAuthorize("hasAuthority('patient:delete')")

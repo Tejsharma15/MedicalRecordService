@@ -13,4 +13,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation,UUID>
     Optional<Consultation> findByPatientIdAndDoctorIdAndIsActive(UUID patientId, UUID doctorId, boolean isActive);
     @Query ("SELECT c.patient.patientId FROM Consultation c where c.consultationId = :consultationId")
     UUID getPatientIdByConsultationId(UUID consultationId);
+
+//    @Transactional
+//    @Query("UPDATE Consultation c SET c.doctor = :doctor")
 }

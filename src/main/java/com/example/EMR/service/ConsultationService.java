@@ -19,10 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,6 +92,7 @@ public class ConsultationService {
         emrService.updateEmrByIdText(updateEmrDtoText);
 
         consultation.setEmrId(publicEmrId);
+        consultation.setSeverity(Consultation.Severity.MEDIUM);
         System.out.println("doc: " + consultation.getDoctor().getEmployeeId());
         System.out.println("pat: " + consultation.getPatient().getPatientId());
         System.out.println("id: " + consultation.getEmrId());
@@ -168,9 +166,69 @@ public class ConsultationService {
         UUID patientPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
         UUID doctorNewPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getNewDoctorId());
         UUID doctorPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getDoctorId());
+        UUID consultationId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getConsultationId());
 
         patientDoctorService.addPatient_Doctor(patientPvtId, doctorNewPvtId);
         patientDoctorService.deletePatient_Doctor(patientPvtId, doctorPvtId);
+        Optional<Consultation> consultation = consultationRepository.findById(consultationId);
+        if(consultation.isEmpty()){
+            throw new IllegalArgumentException("Consultation with id " + consultationId + " not found");
+        }
+        Consultation c = consultation.get();
+        User doctor = userRepository.findById(doctorNewPvtId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+        c.setDoctor(doctor);
+        consultationRepository.save(c);
         return new ResponseEntity<>("Successfully updated consultation", HttpStatus.OK);
+    }
+    public ResponseEntity<?> updateSeverity(UpdateSeverityStatusDto updateSeverityStatusDto){
+
+        Optional<Consultation> consultation = consultationRepository.findById(publicPrivateService.privateIdByPublicId(updateSeverityStatusDto.getConsultationId()));
+        if(consultation.isEmpty()){
+            throw new IllegalArgumentException("Consultation with id " + updateSeverityStatusDto.getConsultationId() + " not found");
+        }
+        Consultation c = consultation.get();
+        Consultation.Severity newSeverity = Consultation.Severity.valueOf(updateSeverityStatusDto.getStatus().toUpperCase());
+        c.setSeverity(newSeverity);
+        consultationRepository.save(c);
+        return new ResponseEntity<>("Updated status of the consultation with id" + updateSeverityStatusDto.getConsultationId() + "with status: "+updateSeverityStatusDto.getStatus(), HttpStatus.OK);
+
+    }
+
+    public ResponseEntity<?> getSeverity(UUID consultationId) {
+//        System.out.println(consultationId);
+
+        Optional<Consultation> consultation = consultationRepository.findById(consultationId);
+        if(consultation.isEmpty()){
+            throw new IllegalArgumentException("Consultation with id " + consultationId + " not found");
+        }
+        System.out.println("WTH");
+        Consultation c = consultation.get();
+        if(c.getSeverity() == Consultation.Severity.LOW) return new ResponseEntity<>("LOW", HttpStatus.OK);
+        if(c.getSeverity() == Consultation.Severity.HIGH) return new ResponseEntity<>("HIGH", HttpStatus.OK);
+        return new ResponseEntity<>("MEDIUM", HttpStatus.OK);
+
+    }
+    public Map<String, String> getAllConsultationsWithSeverity() {
+        List<Consultation> consultations = consultationRepository.findAll();
+
+        Map<String, String> consultationsWithSeverity = consultations.stream()
+                .collect(Collectors.toMap(
+                        consultation -> publicPrivateService.publicIdByPrivateId(consultation.getConsultationId()), // Assuming you have a method to get public ID from private ID
+                        consultation -> {
+                            switch (consultation.getSeverity()) {
+                                case LOW:
+                                    return "LOW";
+                                case MEDIUM:
+                                    return "MEDIUM";
+                                case HIGH:
+                                    return "HIGH";
+                                default:
+                                    return "UNKNOWN";
+                            }
+                        }
+                ));
+
+        return consultationsWithSeverity;
     }
 }
