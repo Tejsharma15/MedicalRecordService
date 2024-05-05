@@ -203,7 +203,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
+                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -241,7 +241,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
+                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -278,7 +278,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
+                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -430,15 +430,10 @@ public class EmrService {
                         .filter(Files::isRegularFile)
                         .forEach(filePath -> {
                             try {
-                                BufferedImage img = ImageIO.read(filePath.toFile());
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                System.out.println(img + " " + filePath);
-                                ImageIO.write(img, "png", baos);
-                                byte[] imgBytes = baos.toByteArray();
                                 String fileName = filePath.getFileName().toString();
                                 String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-                                fileImageMap.put(category, new ImageTimestamp(imgBytes, timestamp));
-                            } catch (IOException e) {
+                                fileImageMap.put(category, new ImageTimestamp(timestamp,filePath.toString()));
+                            } catch (Exception e) {
                                 System.out.println("ekvjev j");
                                 fileImageMap.put(category, new ImageTimestamp(null, ""));
                             }

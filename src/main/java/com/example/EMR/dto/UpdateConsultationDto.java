@@ -10,8 +10,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class UpdateConsultationDto implements Serializable {
-    private String patientId;
     private String doctorId;
     private String newDoctorId;
-    private String consultationId;
 }

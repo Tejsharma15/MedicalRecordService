@@ -19,4 +19,6 @@ public interface PatientDoctorRepository extends JpaRepository<Patient_Doctor, P
     @Query("SELECT pd FROM Patient_Doctor pd WHERE pd.doctor.employeeId = :doctorId")
     List<Patient_Doctor> findByDoctorId(UUID doctorId);
 
+    boolean existsByPatient_PatientIdAndDoctor_EmployeeId(UUID patientId, UUID doctorId);
+
 }

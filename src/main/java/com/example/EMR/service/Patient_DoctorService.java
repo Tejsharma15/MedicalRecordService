@@ -63,6 +63,10 @@ public class Patient_DoctorService {
         patientDoctorRepository.save(patientDoctor);
     }
 
+    public boolean checkIfRelationshipExists(UUID patientId, UUID doctorId) {
+        return patientDoctorRepository.existsByPatient_PatientIdAndDoctor_EmployeeId(patientId, doctorId);
+    }
+
     public void deletePatient_Doctor(UUID patientId, UUID doctorId){
         User doctor = employeeRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not exist with id " + doctorId));

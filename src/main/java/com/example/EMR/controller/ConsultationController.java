@@ -127,20 +127,19 @@ public class ConsultationController {
         UUID privateId = null;
         UUID doctorId = null;
         try{
-            privateId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
             doctorId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getNewDoctorId());
-            if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted/not verified", HttpStatus.OK);
+        
             if(userService.verifyUser(doctorId))    return new ResponseEntity<>("Not possible. Doctor deleted", HttpStatus.BAD_REQUEST);
-            if(privateId == null){
-                logService.addLog("ERROR", "PUT: Updating a consultation, ", null, privateId);
-                return new ResponseEntity<>("Could not Update consultation for patient id:"+ updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
-            }
+            // if(privateId == null){
+            //     logService.addLog("ERROR", "PUT: Updating a consultation, ", null, privateId);
+            //     return new ResponseEntity<>("Could not Update consultation for patient id:"+ updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
+            // }
             logService.addLog("APP", "Updated consultation", null, privateId);
             return consultationService.updateConsultation(updateConsultationDto);
         }catch (Exception e){
-            if(privateId!=null)
+            if(doctorId!=null)
                 logService.addLog("ERROR", "POST: update a consultation, " + e, null, privateId);
-            return new ResponseEntity<>("Could not update consultation for patient id:" + updateConsultationDto.getPatientId(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Could not update consultation for doctor id:" + updateConsultationDto.getDoctorId(), HttpStatus.NOT_FOUND);
         }
     }
     @PutMapping("/updateSeverity")

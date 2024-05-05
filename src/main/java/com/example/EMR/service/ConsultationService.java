@@ -5,10 +5,12 @@ import com.example.EMR.dto.*;
 import com.example.EMR.models.Consultation;
 import com.example.EMR.models.Employee_Department;
 import com.example.EMR.models.Patient;
+import com.example.EMR.models.Patient_Doctor;
 import com.example.EMR.models.User;
 import com.example.EMR.models.User.EmployeeType;
 import com.example.EMR.repository.ConsultationRepository;
 import com.example.EMR.repository.EmployeeDepartmentRepository;
+import com.example.EMR.repository.PatientDoctorRepository;
 import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -98,6 +100,15 @@ public class ConsultationService {
         System.out.println("doc: " + consultation.getDoctor().getEmployeeId());
         System.out.println("pat: " + consultation.getPatient().getPatientId());
         System.out.println("id: " + consultation.getEmrId());
+        if(patientDoctorService.checkIfRelationshipExists(patientPvtId, doctorPvtId)){
+            UUID consultationId = getConsultationIdByPatientIdAndDoctorId(patientPvtId, doctorPvtId);
+            String emrId = getEmrIdByPatientIdAndDoctorId(patientPvtId, doctorPvtId);
+
+            ConsultationCreationDto consultationCreationDto = new ConsultationCreationDto();
+            consultationCreationDto.setPublicEmrId(consultation.getEmrId());
+            consultationCreationDto.setConsultationId(publicPrivateService.publicIdByPrivateId(consultationId)) ;
+            return  ResponseEntity.ok(consultationCreationDto);
+        }
         UUID c_id = consultationRepository.save(consultation).getConsultationId();
         String publicConsultationId = publicPrivateService.savePublicPrivateId(c_id, "CONSULTATION");
         patientDoctorService.addPatient_Doctor(patientPvtId, doctorPvtId);
@@ -159,28 +170,60 @@ public class ConsultationService {
         }
     }
 
+    public UUID getConsultationIdByPatientIdAndDoctorId(UUID patientId, UUID doctorId) {
+        // Check if the patient exists
+        if (!patientRepository.existsById(patientId)) {
+            throw new IllegalArgumentException("Patient with id " + patientId + " not found");
+        }
+
+        // Check if the doctor exists
+        User user = userRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor with id " + doctorId + " not found"));
+
+        if (user.getEmployeeType() !=EmployeeType.DOCTOR) {
+            throw new IllegalArgumentException("User with id " + doctorId + " is not a doctor");
+        }
+
+        Optional<Consultation> consultation = consultationRepository.findByPatientIdAndDoctorIdAndIsActive(patientId,
+                doctorId, true);
+
+        if (consultation.isPresent()) {
+            return consultation.get().getConsultationId();
+        } else {
+            throw new ResourceNotFoundException("No active consultation found for the given patientId and doctorId");
+        }
+    }
+
     public UUID getPatientIdByConsultationId(UUID consultationId) {
         return consultationRepository.getPatientIdByConsultationId(consultationId);
     }
-
+    
     public ResponseEntity<?> updateConsultation(UpdateConsultationDto updateConsultationDto) {
         //does 2 things. 1) Delete existing patient-doctor pair and 2) Add new pair
-        UUID patientPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
+        // UUID patientPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
+        List<UUID>PatientPvtIds = consultationRepository.getPatientByDoctorId(publicPrivateService.privateIdByPublicId(updateConsultationDto.getDoctorId()));
+        System.out.println(PatientPvtIds);
         UUID doctorNewPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getNewDoctorId());
         UUID doctorPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getDoctorId());
-        UUID consultationId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getConsultationId());
-
-        patientDoctorService.addPatient_Doctor(patientPvtId, doctorNewPvtId);
-        patientDoctorService.deletePatient_Doctor(patientPvtId, doctorPvtId);
-        Optional<Consultation> consultation = consultationRepository.findById(consultationId);
-        if(consultation.isEmpty()){
-            throw new IllegalArgumentException("Consultation with id " + consultationId + " not found");
+        for(int i=0; i<PatientPvtIds.size(); i++){
+            
+            Optional<Consultation> c = consultationRepository.findByPatientIdAndDoctorIdAndIsActive(PatientPvtIds.get(i), doctorPvtId, true);
+            if(c.isEmpty()){
+                return new ResponseEntity<>("Successfully updated consultation", HttpStatus.OK);
+            }
+            // UUID consultationId = c.get().getConsultationId();
+            patientDoctorService.addPatient_Doctor(PatientPvtIds.get(i), doctorNewPvtId);
+            patientDoctorService.deletePatient_Doctor(PatientPvtIds.get(i), doctorPvtId);
+            // Optional<Consultation> consultation = consultationRepository.findById(consultationId);
+            // if(c.isEmpty()){
+            //     throw new IllegalArgumentException("Consultation with id " + consultationId + " not found");
+            // }
+            Consultation consultation = c.get();
+            User doctor = userRepository.findById(doctorNewPvtId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+            consultation.setDoctor(doctor);
+            consultationRepository.save(consultation);
         }
-        Consultation c = consultation.get();
-        User doctor = userRepository.findById(doctorNewPvtId)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
-        c.setDoctor(doctor);
-        consultationRepository.save(c);
         return new ResponseEntity<>("Successfully updated consultation", HttpStatus.OK);
     }
     public ResponseEntity<?> updateSeverity(UpdateSeverityStatusDto updateSeverityStatusDto){
