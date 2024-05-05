@@ -75,7 +75,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET: Comments by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Comments by EMR ID"+emrId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("APP", "Viewed Comments", null, privateId);
+            logService.addLog("INFO", "Viewed Comments", null, privateId);
             return emrService.getCommentsByEmrIdText(emrId);
         }catch(Exception e){
             if(privateId != null){
@@ -97,7 +97,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET:EMR by Patient ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Emr by Patient ID"+patientId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("APP", "Viewed Patient EMR", null, privateId);
+            logService.addLog("INFO", "Viewed Patient EMR", null, privateId);
             return emrService.getEmrByPatientIdText(patientId);
         }catch(Exception e){
             if(privateId != null){
@@ -119,7 +119,7 @@ public class EmrController {
                 logService.addLog("ERROR", "GET: EMR by Public EMR ID", null, privateId);
                 return new ResponseEntity<>("Could not find EMR by Public EMR ID"+emrId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("APP", "Viewed patient EMR", null, privateId);
+            logService.addLog("INFO", "Viewed patient EMR", null, privateId);
             return emrService.getEmrByEmrIdText(emrId);
         }catch(Exception e){
             if(privateId != null){

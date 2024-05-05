@@ -55,47 +55,36 @@ public class EmrService {
         this.publicPrivateService = publicPrivateService;
     }
 
-    public ResponseEntity<?> getPrescriptionByEmrIdText(String publicEmrId) throws FileNotFoundException {
+    public ResponseEntity<?> getPrescriptionByEmrIdText(String publicEmrId) throws IOException {
         UUID id = publicPrivateService.privateIdByPublicId(publicEmrId);
         UUID emrId = emrRepository.getEmrIdByPrivateEmrId(id);
-        String basePath = "/doc-uploads/Prescriptions/";
-        String categoryPath = basePath + emrId.toString() + "/";
-        Map<String, String> fileTextMap = new HashMap<>();
+        String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
+        String categoryPath = basePath + "Prescriptions/" + emrId.toString() + "/";
+    
+        Map<String, byte[]> fileImageMap = new HashMap<>();
         try {
             Files.walk(Path.of(categoryPath))
-                    .filter(Files::isRegularFile)
-                    .forEach(filePath -> {
-                        try {
-                            String fileName = filePath.getFileName().toString();
-                            String textContent = Files.readString(filePath);
-                            fileTextMap.put("Prescriptions", textContent);
-                        } catch (IOException e) {
-                            String fileName = filePath.getFileName().toString();
-                            fileTextMap.put("Prescriptions", "");
-                        }
-                    });
-            // nestedMap.put(category, fileTextMap);
-            // Files.walk(Path.of(categoryPath))
-            //             .filter(Files::isRegularFile)
-            //             .forEach(filePath -> {
-            //                 try {
-            //                     BufferedImage img = ImageIO.read(filePath.toFile());
-            //                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            //                     System.out.println(img + " " + filePath);
-            //                     ImageIO.write(img, "png", baos);
-            //                     byte[] imgBytes = baos.toByteArray();
-            //                     String fileName = filePath.getFileName().toString();
-            //                     String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-            //                     fileImageMap.put(new ImageTimestamp(timestamp, imgBytes));
-            //                 } catch (IOException e) {
-            //                     System.out.println("ekvjev j");
-            //                     fileImageMap.put(category, new ImageTimestamp(null, ""));
-            //                 }
-            //             });
+                .filter(Files::isRegularFile)
+                .forEach(filePath -> {
+                    try {
+                        BufferedImage img = ImageIO.read(filePath.toFile());
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(img, "png", baos);
+                        byte[] imgBytes = baos.toByteArray();
+                        String fileName = filePath.getFileName().toString();
+                        String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
+                        System.out.println("Timestamp: " + timestamp);
+                        fileImageMap.put("Prescription", imgBytes);
+                    } catch (IOException e) {
+                        System.out.println("Error reading file: " + filePath);
+                        fileImageMap.put("Prescription", null);
+                    }
+                });
         } catch (IOException e) {
-            System.out.println("empty");
+            throw new FileNotFoundException("Can't find records for the prescription: " + publicEmrId);
         }
-        return ResponseEntity.ok().body(fileTextMap);
+    
+        return ResponseEntity.ok(fileImageMap);
     }
 
     public ResponseEntity<?> getCommentsByEmrIdText(String publicEmrId) throws FileNotFoundException {
