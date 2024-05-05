@@ -168,6 +168,7 @@ public class EmrService {
     }
 
     public ResponseEntity<?> updateEmrByIdText(UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
+        
         UUID id = publicPrivateService.privateIdByPublicId(updateEmrDtoText.getPublicEmrId().toString());
         System.out.println("id: " + id);
         System.out.println("/Prescriptions/" + id + "/");
@@ -199,10 +200,10 @@ public class EmrService {
 
                 // // Read the SVG string from the text file
                 // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String svgString = updateEmrDtoText.getPrescription();
-
+                String[] svgString = updateEmrDtoText.getPrescription();
+                // System.out.println(Arrays.toString(svgString));
                 // Convert the SVG string to a PNG image
-                convertSvgStringToPng(svgString, pngFilePath);
+                convertSvgPathsToSinglePng(svgString, pngFilePath);
 
             } catch (Exception e) {
                 // logger.error("Error converting SVG to PNG", e);
@@ -237,10 +238,10 @@ public class EmrService {
 
                 // // Read the SVG string from the text file
                 // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String svgString = updateEmrDtoText.getComments();
+                String[] svgString = updateEmrDtoText.getComments();
 
                 // Convert the SVG string to a PNG image
-                convertSvgStringToPng(svgString, pngFilePath);
+                convertSvgPathsToSinglePng(svgString, pngFilePath);
             } catch (Exception e) {
                 // logger.error("Error converting SVG to PNG", e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -274,10 +275,10 @@ public class EmrService {
 
                 // // Read the SVG string from the text file
                 // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String svgString = updateEmrDtoText.getTests();
+                String svgString[] = updateEmrDtoText.getTests();
 
                 // Convert the SVG string to a PNG image
-                convertSvgStringToPng(svgString, pngFilePath);
+                convertSvgPathsToSinglePng(svgString, pngFilePath);
             } catch (Exception e) {
                 // logger.error("Error converting SVG to PNG", e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -323,36 +324,38 @@ public class EmrService {
         return ResponseEntity.ok().body(fileTextMap);
     }
 
-    public static void convertSvgStringToPng(String svgPathData, Path outputPath) throws Exception {
-        // Check if the SVG path data is long enough to remove characters
-        if (svgPathData.length() <= 4) {
-            throw new IllegalArgumentException("SVG path data is too short");
-        }
+    public static void convertSvgPathsToSinglePng(String[] svgPathDatas, Path outputPath) throws Exception {
+		// String[] arr
+        //     = { "The",  "quick", "brown", "fox", "jumps",
+        //         "over", "the",   "lazy",  "dog" };
+        // System.out.println("dhv kejbvkewvj "+Arrays.toString(arr));
+        // Initialize the SVG content with a suitable viewBox size
+		StringBuilder svgContent = new StringBuilder(
+				"<svg xmlns=\"http://www.w3.org/2000/svg\">");
 
-        // Remove the first and last two characters from the SVG path data
-        svgPathData = svgPathData.substring(2, svgPathData.length() - 3);
-        // System.out.println(svgPathData);
-        // Escape the SVG path data string
-        String escapedSvgPathData = StringEscapeUtils.escapeXml10(svgPathData);
+		// Append each SVG path to the SVG content
+		for (String svgPathData : svgPathDatas) {
+			// System.out.println(svgContent);
+            svgContent.append("<path d=\"").append(svgPathData).append("\" stroke=\"black\" fill=\"none\"/>");
+		}
 
-        // Wrap the path data in a complete SVG document
-        String svgString = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 500 500\">"
-                + "<path d=\"" + escapedSvgPathData + "\" stroke=\"black\" fill=\"none\"/>"
-                + "</svg>";
+		// Close the SVG tag
+		svgContent.append("</svg>");
 
-        PNGTranscoder transcoder = new PNGTranscoder();
-        // Set the height and width of the image
-        transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, 1280f);
-        transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, 800f);
+		// Set up the transcoder with the desired image dimensions
+		PNGTranscoder transcoder = new PNGTranscoder();
+		transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, 1280f);
+		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, 800f);
 
-        try (StringReader stringReader = new StringReader(svgString);
-                OutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
-            TranscoderInput input = new TranscoderInput(stringReader);
-            TranscoderOutput output = new TranscoderOutput(outputStream);
-            transcoder.transcode(input, output);
-        }
-    }
-
+        // System.out.println(svgContent);
+		// Read the SVG content
+		try (StringReader stringReader = new StringReader(svgContent.toString());
+				OutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
+			TranscoderInput input = new TranscoderInput(stringReader);
+			TranscoderOutput output = new TranscoderOutput(outputStream);
+			transcoder.transcode(input, output);
+		}
+	}
     /*
      * try {
      * // Define the path to the text file and the output image
@@ -421,7 +424,7 @@ public class EmrService {
                             try {
                                 BufferedImage img = ImageIO.read(filePath.toFile());
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                System.out.println(img+" "+filePath);
+                                System.out.println(img + " " + filePath);
                                 ImageIO.write(img, "png", baos);
                                 byte[] imgBytes = baos.toByteArray();
                                 String fileName = filePath.getFileName().toString();

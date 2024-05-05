@@ -143,7 +143,7 @@ public class EmrController {
 
     @PutMapping("/updateEmrByIdText")
     @PreAuthorize("hasAuthority('patient:update')")
-    public ResponseEntity<?> updateEmrByIdText(@ModelAttribute UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
+    public ResponseEntity<?> updateEmrByIdText(@RequestBody UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
         System.out.println("Updating emr by id");
         UUID privateId = null;
         try{

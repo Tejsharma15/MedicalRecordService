@@ -86,9 +86,9 @@ public class ConsultationService {
         updateEmrDtoText.setPatientId(consultationdto.getPatientId());
         updateEmrDtoText.setAccessDepartments("");
         updateEmrDtoText.setAccessList(doctorPvtId.toString());
-        updateEmrDtoText.setComments("Created EMR");
-        updateEmrDtoText.setPrescription("Created EMR");
-        updateEmrDtoText.setTests("Created EMR");
+        // updateEmrDtoText.setComments("Created EMR");
+        // updateEmrDtoText.setPrescription("Created EMR");
+        // updateEmrDtoText.setTests("Created EMR");
         updateEmrDtoText.setPublicEmrId(publicEmrId);
         emrService.updateEmrByIdText(updateEmrDtoText);
 
