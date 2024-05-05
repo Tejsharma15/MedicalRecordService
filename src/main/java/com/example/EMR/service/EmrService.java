@@ -292,8 +292,10 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getPrescriptiont().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getPrescriptiont());
+                LocalDateTime currentDate = LocalDateTime.now();
+                String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/"
-                + id + "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                + id + "/" + formattedDate.replace(":", "_").replace(" ", "$") + ".txt");
                 convertStringToFile(updateEmrDtoText.getPrescriptiont(), prescriptionLocation);
                 emrRepository.setPrescriptionLocation(id, prescriptionLocation.toString());
             }
@@ -311,7 +313,7 @@ public class EmrService {
                 LocalDateTime currentDate = LocalDateTime.now();
                 String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id +
-                "/" + formattedDate.replace("$", " ").replace("_", ":") + ".txt");
+                "/" + formattedDate.replace(" ", "$").replace(":", "_") + ".txt");
                 convertStringToFile(updateEmrDtoText.getTestst(), prescriptionLocation);
                 emrRepository.setTestLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
@@ -330,7 +332,7 @@ public class EmrService {
                 LocalDateTime currentDate = LocalDateTime.now();
                 String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id
-                + "/" + formattedDate.replace("$", " ").replace("_", ":") + ".txt");
+                + "/" + formattedDate.replace(" ", "$").replace(":", "_") + ".txt");
                 convertStringToFile(updateEmrDtoText.getCommentst(), prescriptionLocation);
                 emrRepository.setCommentLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
@@ -516,7 +518,7 @@ public class EmrService {
                                     System.out.println(img + " " + filePath);
                                     ImageIO.write(img, "png", baos);
                                     byte[] imgBytes = baos.toByteArray();
-                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", " ");
                                     List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
                                     // Add the value to the list
                                     list.add(new ImageTimestamp(imgBytes, timestamp));
@@ -526,7 +528,7 @@ public class EmrService {
                                 else{
                                     System.out.println("Text file");
                                     String textContent = Files.readString(filePath);
-                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", " ");
                                     List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
                                     // Add the value to the list
                                     list.add(new ImageTimestamp(textContent, timestamp));
