@@ -133,7 +133,7 @@ public class EmrService {
         return ResponseEntity.ok().body(fileTextMap);
     }
 
-    public String insertConsulationEmr(CreateEmrDtoText createEmrDtoText) {
+    public String insertConsulationEmr(CreateEmrDtoText createEmrDtoText) throws IOException {
         Emr obj = new Emr();
         obj.setPatientId(createEmrDtoText.getPatientId());
         obj.setAccessDepartments(createEmrDtoText.getAccessDepartments());
@@ -144,6 +144,14 @@ public class EmrService {
         obj.setLastUpdate(System.currentTimeMillis() / 1000);
         System.out.println("Created EMR object, storing now.");
         UUID privateId = emrRepository.save(obj).getEmrId();
+        // Files.createDirectories(this.emrStorageLocation);
+        Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + privateId + "/");
+        Files.createDirectories(pngFilePath);
+        pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + privateId + "/");
+        Files.createDirectories(pngFilePath);
+        pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + privateId + "/");
+        Files.createDirectories(pngFilePath);
+
         return publicPrivateService.savePublicPrivateId(privateId, "EMR");
     }
 
@@ -168,7 +176,7 @@ public class EmrService {
     }
 
     public ResponseEntity<?> updateEmrByIdText(UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
-        
+
         UUID id = publicPrivateService.privateIdByPublicId(updateEmrDtoText.getPublicEmrId().toString());
         System.out.println("id: " + id);
         System.out.println("/Prescriptions/" + id + "/");
@@ -325,37 +333,37 @@ public class EmrService {
     }
 
     public static void convertSvgPathsToSinglePng(String[] svgPathDatas, Path outputPath) throws Exception {
-		// String[] arr
-        //     = { "The",  "quick", "brown", "fox", "jumps",
-        //         "over", "the",   "lazy",  "dog" };
+        // String[] arr
+        // = { "The", "quick", "brown", "fox", "jumps",
+        // "over", "the", "lazy", "dog" };
         // System.out.println("dhv kejbvkewvj "+Arrays.toString(arr));
         // Initialize the SVG content with a suitable viewBox size
-		StringBuilder svgContent = new StringBuilder(
-				"<svg xmlns=\"http://www.w3.org/2000/svg\">");
+        StringBuilder svgContent = new StringBuilder(
+                "<svg xmlns=\"http://www.w3.org/2000/svg\">");
 
-		// Append each SVG path to the SVG content
-		for (String svgPathData : svgPathDatas) {
-			// System.out.println(svgContent);
+        // Append each SVG path to the SVG content
+        for (String svgPathData : svgPathDatas) {
+            // System.out.println(svgContent);
             svgContent.append("<path d=\"").append(svgPathData).append("\" stroke=\"black\" fill=\"none\"/>");
-		}
+        }
 
-		// Close the SVG tag
-		svgContent.append("</svg>");
+        // Close the SVG tag
+        svgContent.append("</svg>");
 
-		// Set up the transcoder with the desired image dimensions
-		PNGTranscoder transcoder = new PNGTranscoder();
-		transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, 1280f);
-		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, 800f);
+        // Set up the transcoder with the desired image dimensions
+        PNGTranscoder transcoder = new PNGTranscoder();
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, 1280f);
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, 800f);
 
         // System.out.println(svgContent);
-		// Read the SVG content
-		try (StringReader stringReader = new StringReader(svgContent.toString());
-				OutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
-			TranscoderInput input = new TranscoderInput(stringReader);
-			TranscoderOutput output = new TranscoderOutput(outputStream);
-			transcoder.transcode(input, output);
-		}
-	}
+        // Read the SVG content
+        try (StringReader stringReader = new StringReader(svgContent.toString());
+                OutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
+            TranscoderInput input = new TranscoderInput(stringReader);
+            TranscoderOutput output = new TranscoderOutput(outputStream);
+            transcoder.transcode(input, output);
+        }
+    }
     /*
      * try {
      * // Define the path to the text file and the output image

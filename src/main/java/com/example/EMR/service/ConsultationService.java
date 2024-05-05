@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,7 +60,7 @@ public class ConsultationService {
         return consultationRequestDto;
     }
 
-    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException {
+    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException, IOException {
         UUID patientPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getPatientId());
         UUID doctorPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getDoctorId());
         User doctor = userRepository.findById(doctorPvtId)
