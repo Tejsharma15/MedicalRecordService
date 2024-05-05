@@ -3,21 +3,21 @@ package com.example.EMR.service;
 import java.awt.image.BufferedImage;
 
 public class ImageTimestamp {
-    private String link;
+    private byte[] image;
     private String timestamp;
 
-    public ImageTimestamp( String timestamp,String link) {
-        this.link = link;
+    public ImageTimestamp(byte[] image, String timestamp) {
+        this.image = image;
         this.timestamp = timestamp;
     }
 
     // getters and setters
-    public String getLink() {
-        return link;
+    public byte[] getImage() {
+        return image;
     }
 
-    public void setImage(String link) {
-        this.link = link;
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 
     public String getTimestamp() {

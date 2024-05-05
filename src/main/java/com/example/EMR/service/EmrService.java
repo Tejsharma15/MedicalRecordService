@@ -75,6 +75,23 @@ public class EmrService {
                         }
                     });
             // nestedMap.put(category, fileTextMap);
+            // Files.walk(Path.of(categoryPath))
+            //             .filter(Files::isRegularFile)
+            //             .forEach(filePath -> {
+            //                 try {
+            //                     BufferedImage img = ImageIO.read(filePath.toFile());
+            //                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            //                     System.out.println(img + " " + filePath);
+            //                     ImageIO.write(img, "png", baos);
+            //                     byte[] imgBytes = baos.toByteArray();
+            //                     String fileName = filePath.getFileName().toString();
+            //                     String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
+            //                     fileImageMap.put(new ImageTimestamp(timestamp, imgBytes));
+            //                 } catch (IOException e) {
+            //                     System.out.println("ekvjev j");
+            //                     fileImageMap.put(category, new ImageTimestamp(null, ""));
+            //                 }
+            //             });
         } catch (IOException e) {
             System.out.println("empty");
         }
@@ -203,7 +220,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/"
-                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
+                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -241,7 +258,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
-                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
+                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -278,7 +295,7 @@ public class EmrService {
             try {
                 // Define the path to the text file and the output image
                 Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + id + "/"
-                        + Instant.now().toString().replace(":", "").replace(".", "") + ".png");
+                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
                 Files.createDirectories(pngFilePath.getParent());
 
                 // // Read the SVG string from the text file
@@ -422,20 +439,65 @@ public class EmrService {
         String[] categories = { "Prescriptions", "Comments", "Tests" };
         String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
 
-        Map<String, ImageTimestamp> fileImageMap = new HashMap<>();
+        Map<String, List<ImageTimestamp>> fileImageMap = new HashMap<>();
         for (String category : categories) {
             String categoryPath = basePath + category + "/" + emrId.toString() + "/";
             try {
+                List<ImageTimestamp> temp = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                fileImageMap.put(category, temp);
+                    // File directory = new File(categoryPath);
+                    // File[] files = directory.listFiles();
+
+                    // if (files == null) {
+                    //     return ResponseEntity.notFound().build();
+                    // }
+
+                    // // Sort the list of files based on their creation timestamp
+                    // Arrays.sort(files, Comparator.comparingLong(File::lastModified));
+
+                    // // Create a multi-part response
+                    // MultipartBuilder builder = MultipartBuilder.create();
+                    // for (File file : files) {
+                    //     try {
+                    //         // Read the content of each file
+                    //         byte[] fileContent = Files.readAllBytes(file.toPath());
+                    //         // Add the file content as a part in the response
+                    //         Timestamp timestamp = file.getName();
+                    //         builder.addPart(file.getName(), fileContent);
+                    //     } catch (IOException e) {
+                    //         // Handle error if unable to read file content
+                    //         e.printStackTrace();
+                    //     }
+                    // }
+
+                    // // Convert multi-part response to byte array
+                    // byte[] responseBody = builder.build();
+                    // fileImageMap.insert(category, responseBody);
+    // }
                 Files.walk(Path.of(categoryPath))
                         .filter(Files::isRegularFile)
                         .forEach(filePath -> {
                             try {
+                                BufferedImage img = ImageIO.read(filePath.toFile());
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                System.out.println(img + " " + filePath);
+                                ImageIO.write(img, "png", baos);
+                                byte[] imgBytes = baos.toByteArray();
                                 String fileName = filePath.getFileName().toString();
                                 String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-                                fileImageMap.put(category, new ImageTimestamp(timestamp,filePath.toString()));
-                            } catch (Exception e) {
+                                List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                // Add the value to the list
+                                list.add(new ImageTimestamp(imgBytes, timestamp));
+                                // Put the list back into the map
+                                fileImageMap.put(category, list);
+                            } catch (IOException e) {
                                 System.out.println("ekvjev j");
-                                fileImageMap.put(category, new ImageTimestamp(null, ""));
+                                List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                // Add the value to the list
+                                list.add(new ImageTimestamp(null, ""));
+                                // Put the list back into the map
+                                fileImageMap.put(category, list);
+                                // fileImageMap.put(category, new ImageTimestamp(null, ""));
                             }
                         });
             } catch (IOException e) {
@@ -444,6 +506,9 @@ public class EmrService {
         }
 
         return ResponseEntity.ok().body(fileImageMap);
+        // return ResponseEntity.ok()
+        // .header("Content-Disposition", "attachment; filename=files.zip")
+        // .body(responseBody);
     }
 
     private static String readTextFromFile(String filePath) throws IOException {
