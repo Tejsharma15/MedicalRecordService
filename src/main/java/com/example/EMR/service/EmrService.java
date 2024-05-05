@@ -430,15 +430,10 @@ public class EmrService {
                         .filter(Files::isRegularFile)
                         .forEach(filePath -> {
                             try {
-                                BufferedImage img = ImageIO.read(filePath.toFile());
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                System.out.println(img + " " + filePath);
-                                ImageIO.write(img, "png", baos);
-                                byte[] imgBytes = baos.toByteArray();
                                 String fileName = filePath.getFileName().toString();
                                 String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-                                fileImageMap.put(category, new ImageTimestamp(imgBytes, timestamp));
-                            } catch (IOException e) {
+                                fileImageMap.put(category, new ImageTimestamp(timestamp,filePath.toString()));
+                            } catch (Exception e) {
                                 System.out.println("ekvjev j");
                                 fileImageMap.put(category, new ImageTimestamp(null, ""));
                             }
