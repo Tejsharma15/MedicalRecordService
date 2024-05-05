@@ -1,7 +1,7 @@
 package com.example.EMR.models;
 
 import jakarta.persistence.*;
-
+import java.sql.Timestamp;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,10 +29,20 @@ public class Document {
     @Column(name = "hash", nullable = false, unique = true)
     private String hash;
 
+    @Column(name = "timestamp", nullable =false)
+    private Timestamp timesStamp;
+
+    @Column
+
 //    @Column(name = "patientId", nullable = false)
 //    private UUID patientId;
 
     public static final int RADIX = 16;
+
+    @PrePersist
+    protected void onCreate() {
+        timesStamp = new Timestamp(System.currentTimeMillis());
+    }
 
     public Long getId() {
         return id;
