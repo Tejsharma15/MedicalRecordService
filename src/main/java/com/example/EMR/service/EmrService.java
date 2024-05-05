@@ -197,11 +197,11 @@ public class EmrService {
         FileWriter writer = null;
         try {
             writer = new FileWriter(filePath.toFile(), true);
-            LocalDateTime currentDate = LocalDateTime.now();
+            // LocalDateTime currentDate = LocalDateTime.now();
             // Format date and time
-            String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            // String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             // Write formatted date, content, and newline character to file
-            writer.write("\n" + formattedDate + " " + content + "\n");
+            writer.write("\n" + content + "\n");
         } finally {
             if (writer != null) {
                 writer.close();
