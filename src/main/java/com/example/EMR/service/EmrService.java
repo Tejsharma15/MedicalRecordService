@@ -219,8 +219,10 @@ public class EmrService {
                 
                 try {
                     // Define the path to the text file and the output image
+                    LocalDateTime currentDate = LocalDateTime.now();
+                    String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/"
-                    + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                    + formattedDate.replace(":", "_").replace(" ", "$") + ".png");
                     Files.createDirectories(pngFilePath.getParent());
     
                     // // Read the SVG string from the text file
@@ -239,9 +241,11 @@ public class EmrService {
             }
             if (updateEmrDtoText.getComments() != null && updateEmrDtoText.getComments().length > 0) {
                 try {
+                    LocalDateTime currentDate = LocalDateTime.now();
+                    String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     // Define the path to the text file and the output image
                     Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
-                            + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                            + formattedDate.replace(":", "_").replace(" ", "$") + ".png");
                     Files.createDirectories(pngFilePath.getParent());
                     
                     // // Read the SVG string from the text file
@@ -259,9 +263,11 @@ public class EmrService {
             if (updateEmrDtoText.getTests() != null && updateEmrDtoText.getTests().length > 0) {
                 
                 try {
+                    LocalDateTime currentDate = LocalDateTime.now();
+                    String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     // Define the path to the text file and the output image
                     Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + id + "/"
-                    + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                    + formattedDate.replace(":", "_").replace(" ", "$") + ".png");
                     Files.createDirectories(pngFilePath.getParent());
                     
                     // // Read the SVG string from the text file
@@ -302,8 +308,10 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getTestst().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getTestst());
+                LocalDateTime currentDate = LocalDateTime.now();
+                String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id +
-                "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                "/" + formattedDate.replace("$", " ").replace("_", ":") + ".txt");
                 convertStringToFile(updateEmrDtoText.getTestst(), prescriptionLocation);
                 emrRepository.setTestLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
@@ -319,8 +327,10 @@ public class EmrService {
                 document.setSize(updateEmrDtoText.getCommentst().length());
                 document.setHash();
                 System.out.println(updateEmrDtoText.getCommentst());
+                LocalDateTime currentDate = LocalDateTime.now();
+                String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id
-                + "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                + "/" + formattedDate.replace("$", " ").replace("_", ":") + ".txt");
                 convertStringToFile(updateEmrDtoText.getCommentst(), prescriptionLocation);
                 emrRepository.setCommentLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
