@@ -172,7 +172,7 @@ public class EmrService {
         UUID id = publicPrivateService.privateIdByPublicId(updateEmrDtoText.getPublicEmrId().toString());
         System.out.println("id: " + id);
         System.out.println("/Prescriptions/" + id + "/");
-        if (updateEmrDtoText.getPrescription() != null) {
+        if (updateEmrDtoText.getPrescription() != null && updateEmrDtoText.getPrescription().length > 0) {
             // try {
             // Document document = new Document();
             // document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id
@@ -212,7 +212,7 @@ public class EmrService {
             }
 
         }
-        if (updateEmrDtoText.getComments() != null) {
+        if (updateEmrDtoText.getComments() != null && updateEmrDtoText.getComments().length > 0) {
             // try {
             // System.out.println("Trying to add comments:");
             // Document document = new Document();
@@ -248,7 +248,7 @@ public class EmrService {
                         .body("Error in saving prescription " + e);
             }
         }
-        if (updateEmrDtoText.getTests() != null) {
+        if (updateEmrDtoText.getTests() != null && updateEmrDtoText.getTests().length > 0) {
             // try {
             // System.out.println("Trying to add comments:");
             // Document document = new Document();
