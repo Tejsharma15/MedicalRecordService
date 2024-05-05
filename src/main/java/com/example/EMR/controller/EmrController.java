@@ -42,7 +42,7 @@ public class EmrController {
     }
 
     @GetMapping("/getPrescriptionByEmrIdText/{emrId}")
-    @PreAuthorize("hasAuthority('prescription:read') or hasAuthority('patient:read')")
+    @PreAuthorize("hasAuthority('prescription:read')")
     public ResponseEntity<?> getPrescriptionsEmrIdText(@PathVariable("emrId") String emrId) throws FileNotFoundException{
         System.out.println("Returning Prescription BY ID");
         UUID privateId = null;

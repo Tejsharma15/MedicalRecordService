@@ -33,7 +33,7 @@ public class SecurityConfiguration {
                .authorizeHttpRequests(req ->
                        req.requestMatchers(WHITE_LIST_URL)
                                .permitAll()
-                               .requestMatchers("/emr/getPrescriptionByEmrId/{emrId}").hasAnyAuthority(PATIENT_READ.getPermission(), PRESCRIPTION_READ.getPermission())
+                               .requestMatchers("/emr/getPrescriptionByEmrId/{emrId}").hasAnyAuthority(PRESCRIPTION_READ.getPermission())
                                .requestMatchers("/emr/getCommentsByEmrId/{emrId}").hasAnyAuthority(PATIENT_READ.getPermission())
                                .requestMatchers("/emr/updateEmrByIdText/{emrId}").hasAnyAuthority(PATIENT_UPDATE.getPermission())
                                .requestMatchers("/emr/getEmrByEmrIdText/{emrId}").hasAnyAuthority(PATIENT_READ.getPermission())
