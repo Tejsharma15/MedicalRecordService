@@ -49,6 +49,7 @@ public class EmrController {
         try{
             privateId = emrService.getPatientIdByEmrId(emrId);
             if(patientService.verifyPatient(privateId))    return new ResponseEntity<>("No access given for the user. Patient deleted", HttpStatus.OK);
+            System.out.println(privateId);
             if(privateId == null){
                 logService.addLog("ERROR", "GET: Prescription by EMR ID, ", null, privateId);
                 return new ResponseEntity<>("Could not find Prescription by EMR ID"+emrId, HttpStatus.NOT_FOUND);

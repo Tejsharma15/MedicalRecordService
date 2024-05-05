@@ -56,35 +56,63 @@ public class EmrService {
     }
 
     public ResponseEntity<?> getPrescriptionByEmrIdText(String publicEmrId) throws IOException {
-        UUID id = publicPrivateService.privateIdByPublicId(publicEmrId);
-        UUID emrId = emrRepository.getEmrIdByPrivateEmrId(id);
+        UUID emrId = publicPrivateService.privateIdByPublicId(publicEmrId);
+        // Define the categories and corresponding file paths
+        String[] categories = { "Prescriptions"};
         String basePath = this.emrStorageLocation.toString() + "/"; // Adjust the base path
-        String categoryPath = basePath + "Prescriptions/" + emrId.toString() + "/";
-    
-        Map<String, byte[]> fileImageMap = new HashMap<>();
-        try {
-            Files.walk(Path.of(categoryPath))
-                .filter(Files::isRegularFile)
-                .forEach(filePath -> {
-                    try {
-                        BufferedImage img = ImageIO.read(filePath.toFile());
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(img, "png", baos);
-                        byte[] imgBytes = baos.toByteArray();
-                        String fileName = filePath.getFileName().toString();
-                        String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-                        System.out.println("Timestamp: " + timestamp);
-                        fileImageMap.put("Prescription", imgBytes);
-                    } catch (IOException e) {
-                        System.out.println("Error reading file: " + filePath);
-                        fileImageMap.put("Prescription", null);
-                    }
-                });
-        } catch (IOException e) {
-            throw new FileNotFoundException("Can't find records for the prescription: " + publicEmrId);
+
+        Map<String, List<ImageTimestamp>> fileImageMap = new HashMap<>();
+        for (String category : categories) {
+            String categoryPath = basePath + category + "/" + emrId.toString() + "/";
+            try {
+                List<ImageTimestamp> temp = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                fileImageMap.put(category, temp);
+                
+                Files.walk(Path.of(categoryPath))
+                        .filter(Files::isRegularFile)
+                        .forEach(filePath -> {
+                            try {
+                                String fileName = filePath.getFileName().toString();
+                                System.out.println(fileName + " " +filePath);
+                                if(fileName.endsWith(".png")){
+                                    BufferedImage img = ImageIO.read(filePath.toFile());
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    System.out.println(img + " " + filePath);
+                                    ImageIO.write(img, "png", baos);
+                                    byte[] imgBytes = baos.toByteArray();
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                    // Add the value to the list
+                                    list.add(new ImageTimestamp(imgBytes, timestamp));
+                                    // Put the list back into the map
+                                    fileImageMap.put(category, list);
+                                }
+                                else{
+                                    System.out.println("Text file");
+                                    String textContent = Files.readString(filePath);
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                    // Add the value to the list
+                                    list.add(new ImageTimestamp(textContent, timestamp));
+                                    // Put the list back into the map
+                                    fileImageMap.put(category, list);
+                                }
+                            } catch (IOException e) {
+                                System.out.println("ekvjev j");
+                                List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                // Add the value to the list
+                                list.add(new ImageTimestamp( ""));
+                                // Put the list back into the map
+                                fileImageMap.put(category, list);
+                                // fileImageMap.put(category, new ImageTimestamp(null, ""));
+                            }
+                        });
+            } catch (IOException e) {
+                throw new ResourceNotFoundException("Can't find records for the emr: " + publicEmrId);
+            }
         }
-    
-        return ResponseEntity.ok(fileImageMap);
+
+        return ResponseEntity.ok().body(fileImageMap);
     }
 
     public ResponseEntity<?> getCommentsByEmrIdText(String publicEmrId) throws FileNotFoundException {
@@ -186,119 +214,122 @@ public class EmrService {
         UUID id = publicPrivateService.privateIdByPublicId(updateEmrDtoText.getPublicEmrId().toString());
         System.out.println("id: " + id);
         System.out.println("/Prescriptions/" + id + "/");
-        if (updateEmrDtoText.getPrescription() != null && updateEmrDtoText.getPrescription().length > 0) {
-            // try {
-            // Document document = new Document();
-            // document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id
-            // + "/" + id + "/");
-            // document.setMimeType("text/plain");
-            // document.setSize(updateEmrDtoText.getPrescription().length());
-            // document.setHash();
-            // System.out.println(updateEmrDtoText.getPrescription());
-            // Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/"
-            // + id + "/" + id + "/");
-            // convertStringToFile(updateEmrDtoText.getPrescription(),
-            // prescriptionLocation);
-            // emrRepository.setPrescriptionLocation(id, prescriptionLocation.toString());
-            // }
-            // catch(Exception e){
-            // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in
-            // saving prescription " + e);
-            // }
-
-            try {
-                // Define the path to the text file and the output image
-                Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
-                Files.createDirectories(pngFilePath.getParent());
-
-                // // Read the SVG string from the text file
-                // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String[] svgString = updateEmrDtoText.getPrescription();
-                // System.out.println(Arrays.toString(svgString));
-                // Convert the SVG string to a PNG image
-                convertSvgPathsToSinglePng(svgString, pngFilePath);
-
-            } catch (Exception e) {
-                // logger.error("Error converting SVG to PNG", e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error in saving prescription " + e);
+        if(updateEmrDtoText.getIsImage()!=0){
+            if (updateEmrDtoText.getPrescription() != null && updateEmrDtoText.getPrescription().length > 0) {
+                
+                try {
+                    // Define the path to the text file and the output image
+                    Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Prescriptions/" + id + "/"
+                    + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                    Files.createDirectories(pngFilePath.getParent());
+    
+                    // // Read the SVG string from the text file
+                    // String svgString = new String(Files.readAllBytes(txtFilePath));
+                    String[] svgString = updateEmrDtoText.getPrescription();
+                    // System.out.println(Arrays.toString(svgString));
+                    // Convert the SVG string to a PNG image
+                    convertSvgPathsToSinglePng(svgString, pngFilePath);
+                    
+                } catch (Exception e) {
+                    // logger.error("Error converting SVG to PNG", e);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error in saving prescription " + e);
+                }
+                
             }
-
-        }
-        if (updateEmrDtoText.getComments() != null && updateEmrDtoText.getComments().length > 0) {
-            // try {
-            // System.out.println("Trying to add comments:");
-            // Document document = new Document();
-            // document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
-            // + id + "/");
-            // document.setMimeType("text/plain");
-            // document.setSize(updateEmrDtoText.getComments().length());
-            // document.setHash();
-            // System.out.println(updateEmrDtoText.getComments());
-            // Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id
-            // + "/" + id + "/");
-            // convertStringToFile(updateEmrDtoText.getComments(), prescriptionLocation);
-            // emrRepository.setCommentLocation(id, prescriptionLocation.toString());
-            // } catch (Exception e) {
-            // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in
-            // saving comments");
-            // }
-            try {
-                // Define the path to the text file and the output image
-                Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
-                Files.createDirectories(pngFilePath.getParent());
-
-                // // Read the SVG string from the text file
-                // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String[] svgString = updateEmrDtoText.getComments();
-
-                // Convert the SVG string to a PNG image
-                convertSvgPathsToSinglePng(svgString, pngFilePath);
-            } catch (Exception e) {
-                // logger.error("Error converting SVG to PNG", e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error in saving prescription " + e);
+            if (updateEmrDtoText.getComments() != null && updateEmrDtoText.getComments().length > 0) {
+                try {
+                    // Define the path to the text file and the output image
+                    Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
+                            + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                    Files.createDirectories(pngFilePath.getParent());
+                    
+                    // // Read the SVG string from the text file
+                    // String svgString = new String(Files.readAllBytes(txtFilePath));
+                    String[] svgString = updateEmrDtoText.getComments();
+                    
+                    // Convert the SVG string to a PNG image
+                    convertSvgPathsToSinglePng(svgString, pngFilePath);
+                } catch (Exception e) {
+                    // logger.error("Error converting SVG to PNG", e);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error in saving prescription " + e);
+                }
+            }
+            if (updateEmrDtoText.getTests() != null && updateEmrDtoText.getTests().length > 0) {
+                
+                try {
+                    // Define the path to the text file and the output image
+                    Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + id + "/"
+                    + Instant.now().toString().replace(":", "_").replace(".", "$") + ".png");
+                    Files.createDirectories(pngFilePath.getParent());
+                    
+                    // // Read the SVG string from the text file
+                    // String svgString = new String(Files.readAllBytes(txtFilePath));
+                    String svgString[] = updateEmrDtoText.getTests();
+                    
+                    // Convert the SVG string to a PNG image
+                    convertSvgPathsToSinglePng(svgString, pngFilePath);
+                } catch (Exception e) {
+                    // logger.error("Error converting SVG to PNG", e);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error in saving prescription " + e);
+                }
             }
         }
-        if (updateEmrDtoText.getTests() != null && updateEmrDtoText.getTests().length > 0) {
-            // try {
-            // System.out.println("Trying to add comments:");
-            // Document document = new Document();
-            // document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/" +
-            // id + "/");
-            // document.setMimeType("text/plain");
-            // document.setSize(updateEmrDtoText.getTests().length());
-            // document.setHash();
-            // System.out.println(updateEmrDtoText.getTests());
-            // Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id +
-            // "/" + id + "/");
-            // convertStringToFile(updateEmrDtoText.getTests(), prescriptionLocation);
-            // emrRepository.setTestLocation(id, prescriptionLocation.toString());
-            // } catch (Exception e) {
-            // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in
-            // saving tests");
-            // }
-
+        if(updateEmrDtoText.getIsText() != 0){
             try {
-                // Define the path to the text file and the output image
-                Path pngFilePath = Paths.get(this.emrStorageLocation.toString() + "/Tests/" + id + "/"
-                        + Instant.now().toString().replace(":", "_").replace(".", "_") + ".png");
-                Files.createDirectories(pngFilePath.getParent());
-
-                // // Read the SVG string from the text file
-                // String svgString = new String(Files.readAllBytes(txtFilePath));
-                String svgString[] = updateEmrDtoText.getTests();
-
-                // Convert the SVG string to a PNG image
-                convertSvgPathsToSinglePng(svgString, pngFilePath);
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Prescriptions/" + id
+                + "/" + id + "/");
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getPrescriptiont().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getPrescriptiont());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Prescriptions/"
+                + id + "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                convertStringToFile(updateEmrDtoText.getPrescriptiont(), prescriptionLocation);
+                emrRepository.setPrescriptionLocation(id, prescriptionLocation.toString());
+            }
+            catch(IOException e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving prescription " + e);
+            }
+            try {
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Tests/" + id + "/" +
+                id + "/");
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getTestst().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getTestst());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Tests/" + id +
+                "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                convertStringToFile(updateEmrDtoText.getTestst(), prescriptionLocation);
+                emrRepository.setTestLocation(id, prescriptionLocation.toString());
             } catch (Exception e) {
-                // logger.error("Error converting SVG to PNG", e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error in saving prescription " + e);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving tests");
+            }
+            
+            try {
+                System.out.println("Trying to add comments:");
+                Document document = new Document();
+                document.setName(this.emrStorageLocation.toString() + "/Comments/" + id + "/"
+                + id + "/");
+                document.setMimeType("text/plain");
+                document.setSize(updateEmrDtoText.getCommentst().length());
+                document.setHash();
+                System.out.println(updateEmrDtoText.getCommentst());
+                Path prescriptionLocation = this.emrStorageLocation.resolve("Comments/" + id
+                + "/" + Instant.now().toString().replace(":", "_").replace(".", "$") + ".txt");
+                convertStringToFile(updateEmrDtoText.getCommentst(), prescriptionLocation);
+                emrRepository.setCommentLocation(id, prescriptionLocation.toString());
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in saving comments");
             }
         }
+        // if(updateEmrDtoText.getIsAudio() == true){
+
+        // }
         emrRepository.updateLastUpdate(id, System.currentTimeMillis() / 1000);
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully");
     }
@@ -467,23 +498,36 @@ public class EmrService {
                         .filter(Files::isRegularFile)
                         .forEach(filePath -> {
                             try {
-                                BufferedImage img = ImageIO.read(filePath.toFile());
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                System.out.println(img + " " + filePath);
-                                ImageIO.write(img, "png", baos);
-                                byte[] imgBytes = baos.toByteArray();
                                 String fileName = filePath.getFileName().toString();
-                                String timestamp = fileName.substring(0, fileName.lastIndexOf('.'));
-                                List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
-                                // Add the value to the list
-                                list.add(new ImageTimestamp(imgBytes, timestamp));
-                                // Put the list back into the map
-                                fileImageMap.put(category, list);
+                                System.out.println(fileName + " " +filePath);
+                                if(fileName.endsWith(".png")){
+                                    BufferedImage img = ImageIO.read(filePath.toFile());
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    System.out.println(img + " " + filePath);
+                                    ImageIO.write(img, "png", baos);
+                                    byte[] imgBytes = baos.toByteArray();
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                    // Add the value to the list
+                                    list.add(new ImageTimestamp(imgBytes, timestamp));
+                                    // Put the list back into the map
+                                    fileImageMap.put(category, list);
+                                }
+                                else{
+                                    System.out.println("Text file");
+                                    String textContent = Files.readString(filePath);
+                                    String timestamp = fileName.substring(0, fileName.lastIndexOf('.')).replace("_", ":").replace("$", ".");
+                                    List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
+                                    // Add the value to the list
+                                    list.add(new ImageTimestamp(textContent, timestamp));
+                                    // Put the list back into the map
+                                    fileImageMap.put(category, list);
+                                }
                             } catch (IOException e) {
                                 System.out.println("ekvjev j");
                                 List<ImageTimestamp> list = fileImageMap.getOrDefault(category, new ArrayList<ImageTimestamp>());
                                 // Add the value to the list
-                                list.add(new ImageTimestamp(null, ""));
+                                list.add(new ImageTimestamp( ""));
                                 // Put the list back into the map
                                 fileImageMap.put(category, list);
                                 // fileImageMap.put(category, new ImageTimestamp(null, ""));
