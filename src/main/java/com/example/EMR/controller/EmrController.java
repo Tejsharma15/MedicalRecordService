@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/emr")
 public class EmrController {
