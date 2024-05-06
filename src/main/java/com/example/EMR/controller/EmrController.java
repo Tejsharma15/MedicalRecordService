@@ -109,7 +109,7 @@ public class EmrController {
         }
     }
     @GetMapping("/getEmrByEmrIdText/{emrId}")
-    @PreAuthorize("hasAuthority('doctor:read') and @emrService.hasAccessToEmrByDoctorId(#emrId,authentication.principal)")
+    @PreAuthorize("(hasAuthority('doctor:read') and @emrService.hasAccessToEmrByDoctorId(#emrId,authentication.principal)) or (hasAuthority('nurse:read') and @emrService.hasAccessToEmrByNurseId(#emrId,authentication.principal))")
     public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") String emrId) throws ResourceNotFoundException {
         System.out.println("Returning EMR");
         UUID privateId = null;
@@ -143,7 +143,7 @@ public class EmrController {
 //    }
 
     @PutMapping("/updateEmrByIdText")
-    @PreAuthorize("hasAuthority('patient:update')")
+    @PreAuthorize("(hasAuthority('patient:update') and @emrService.hasAccessToEmrByDoctorId(#updateEmrDtoText.publicEmrId,authentication.principal)) or (hasAuthority('patient:update') and @emrService.hasAccessToEmrByNurseId(#updateEmrDtoText.publicEmrId,authentication.principal))")
     public ResponseEntity<?> updateEmrByIdText(@RequestBody UpdateEmrDtoText updateEmrDtoText) throws NoSuchAlgorithmException {
         System.out.println("Updating emr by id");
         UUID privateId = null;

@@ -8,8 +8,11 @@ import com.example.EMR.models.Document;
 import com.example.EMR.models.Emr;
 import com.example.EMR.property.DocumentStorageProperty;
 import com.example.EMR.repository.DocumentRepository;
+import com.example.EMR.repository.EmployeeDepartmentRepository;
 import com.example.EMR.repository.EmrRepository;
+import com.example.EMR.repository.PatientDepartmentRepository;
 import com.example.EMR.repository.PatientDoctorRepository;
+import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.models.Patient_Doctor;
 import jakarta.transaction.Transactional;
 
@@ -47,17 +50,23 @@ public class EmrService {
     private final EmrRepository emrRepository;
     private final DocumentRepository documentRepository;
     private final PatientDoctorRepository patientDoctorRepository;
+    private final PatientDepartmentRepository patientDepartmentRepository;
+    private final EmployeeDepartmentRepository employeeDepartmentRepository;
+    private final PatientRepository patientRepository;
     private final PublicPrivateService publicPrivateService;
     private final Path emrStorageLocation;
 
     @Autowired
     EmrService(EmrRepository emrRepository, DocumentRepository documentRepository,
-            DocumentStorageProperty documentStorageProperty, PublicPrivateService publicPrivateService, PatientDoctorRepository patientDoctorRepository) {
+            DocumentStorageProperty documentStorageProperty, PublicPrivateService publicPrivateService, PatientDoctorRepository patientDoctorRepository, EmployeeDepartmentRepository employeeDepartmentRepository, PatientDepartmentRepository patientDepartmentRepository, PatientRepository patientRepository) {
         this.emrRepository = emrRepository;
         this.emrStorageLocation = Paths.get(documentStorageProperty.getUploadDirectory());
         this.patientDoctorRepository = patientDoctorRepository;
         this.documentRepository = documentRepository;
         this.publicPrivateService = publicPrivateService;
+        this.employeeDepartmentRepository = employeeDepartmentRepository;
+        this.patientDepartmentRepository = patientDepartmentRepository;
+        this.patientRepository = patientRepository;
     }
 
     public boolean hasAccessToEmrByDoctorId(String emrID,User doctor)
@@ -65,6 +74,13 @@ public class EmrService {
         UUID patientId=getPatientIdByEmrId(emrID);
         UUID doctorID = doctor.getEmployeeId();
         return patientDoctorRepository.existsByPatient_PatientIdAndDoctor_EmployeeId(patientId, doctorID);
+    }
+    public boolean hasAccessToEmrByNurseId(String emrID,User nurse)
+    {
+        UUID patientId=getPatientIdByEmrId(emrID);
+        UUID departmentId1 = employeeDepartmentRepository.findDepartmentsByEmployee(nurse).get(0).getDepartment().getDepartmentId();
+        UUID departmentId2 = patientDepartmentRepository.findDepartmentsByPatient(patientRepository.findById(patientId).orElseThrow()).get(0).getDepartment().getDepartmentId();
+        return departmentId1==departmentId2;
     }
     public ResponseEntity<?> getPrescriptionByEmrIdText(String publicEmrId) throws IOException {
         UUID emrId = publicPrivateService.privateIdByPublicId(publicEmrId);
