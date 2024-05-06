@@ -13,6 +13,8 @@ import com.example.EMR.repository.EmployeeDepartmentRepository;
 import com.example.EMR.repository.PatientDoctorRepository;
 import com.example.EMR.repository.PatientRepository;
 import com.example.EMR.repository.UserRepository;
+
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +39,9 @@ public class ConsultationService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
     private final PublicPrivateService publicPrivateService;
+    
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     public ConsultationService(ConsultationRepository consultationRepository, EmrService emrService,
@@ -62,7 +67,7 @@ public class ConsultationService {
         return consultationRequestDto;
     }
 
-    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException, IOException {
+    public ResponseEntity<?> addConsultation(ConsultationDto consultationdto) throws ResourceNotFoundException, NoSuchAlgorithmException, IOException, MessagingException {
         UUID patientPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getPatientId());
         UUID doctorPvtId = publicPrivateService.privateIdByPublicId(consultationdto.getDoctorId());
         User doctor = userRepository.findById(doctorPvtId)
@@ -121,6 +126,7 @@ public class ConsultationService {
         ConsultationCreationDto consultationCreationDto = new ConsultationCreationDto();
         consultationCreationDto.setPublicEmrId(consultation.getEmrId());
         consultationCreationDto.setConsultationId(publicConsultationId);
+        emailService.sendAddConsultationEmail(patient.getEmailId(),consultationdto.getDoctorId(),publicConsultationId, doctor.getName());
         return  ResponseEntity.ok(consultationCreationDto);
     }
 
@@ -198,7 +204,7 @@ public class ConsultationService {
         return consultationRepository.getPatientIdByConsultationId(consultationId);
     }
     
-    public ResponseEntity<?> updateConsultation(UpdateConsultationDto updateConsultationDto) {
+    public ResponseEntity<?> updateConsultation(UpdateConsultationDto updateConsultationDto) throws MessagingException {
         //does 2 things. 1) Delete existing patient-doctor pair and 2) Add new pair
         // UUID patientPvtId = publicPrivateService.privateIdByPublicId(updateConsultationDto.getPatientId());
         List<UUID>PatientPvtIds = consultationRepository.getPatientByDoctorId(publicPrivateService.privateIdByPublicId(updateConsultationDto.getDoctorId()));
@@ -223,6 +229,13 @@ public class ConsultationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
             consultation.setDoctor(doctor);
             consultationRepository.save(consultation);
+            patientRepository.findById(PatientPvtIds.get(i)).ifPresent(patient -> {
+                try {
+                    emailService.sendDoctorReassignedEmail(patient.getEmailId(), updateConsultationDto.getNewDoctorId(), publicPrivateService.publicIdByPrivateId(patient.getPatientId()), doctor.getName());
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         return new ResponseEntity<>("Successfully updated consultation", HttpStatus.OK);
     }

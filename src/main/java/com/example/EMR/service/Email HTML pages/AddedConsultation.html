@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consultation Created</title>
+</head>
+<body>
+    <h1>Consultation Created</h1>
+    <p>Dear Patient,</p>
+    <p>A consultation has been created for you. Here are the details:</p>
+    <ul>
+        <li>Consultation ID: <span id="consultationId">{consultationId}</span></li>
+        <li>Doctor ID: <span id="doctorId">{doctorId}</span></li>
+        <li>Doctor Name: <span id="doctorName">{doctorName}</span></li>
+    </ul>
+    <p>The doctor has been given access to your medical records for this consultation.</p>
+    <p>If you have any questions or concerns, please contact us.</p>
+    <p>Thank you.</p>
+
+    <!-- <script>
+        // Get the consultation ID, doctor ID, and doctor name from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const consultationId = urlParams.get('consultationId');
+        const doctorId = urlParams.get('doctorId');
+        const doctorName = urlParams.get('doctorName');
+
+        // Set the values in the HTML
+        document.getElementById('consultationId').textContent = consultationId;
+        document.getElementById('doctorId').textContent = doctorId;
+        document.getElementById('doctorName').textContent = doctorName;
+    </script> -->
+</body>
+</html>

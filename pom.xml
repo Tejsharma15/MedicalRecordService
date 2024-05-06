@@ -109,6 +109,10 @@
 			<version>1.9.3</version>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-core</artifactId>
 			<version>1.4.0</version>

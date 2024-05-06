@@ -108,9 +108,8 @@ public class EmrController {
             return new ResponseEntity<>("Could not find EMR by Patient ID"+patientId, HttpStatus.NOT_FOUND);
         }
     }
-
     @GetMapping("/getEmrByEmrIdText/{emrId}")
-    @PreAuthorize("hasAuthority('patient:read')")
+    @PreAuthorize("hasAuthority('doctor:read') and @emrService.hasAccessToEmrByDoctorId(#emrId,authentication.principal)")
     public ResponseEntity<?> getEmrByPublicEmrIdText(@PathVariable("emrId") String emrId) throws ResourceNotFoundException {
         System.out.println("Returning EMR");
         UUID privateId = null;

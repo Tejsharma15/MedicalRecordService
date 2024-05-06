@@ -9,6 +9,8 @@ import com.example.EMR.models.Emr;
 import com.example.EMR.property.DocumentStorageProperty;
 import com.example.EMR.repository.DocumentRepository;
 import com.example.EMR.repository.EmrRepository;
+import com.example.EMR.repository.PatientDoctorRepository;
+import com.example.EMR.models.Patient_Doctor;
 import jakarta.transaction.Transactional;
 
 import org.apache.batik.transcoder.TranscoderInput;
@@ -35,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import com.example.EMR.models.User;
 
 import javax.imageio.ImageIO;
 
@@ -43,18 +46,26 @@ import javax.imageio.ImageIO;
 public class EmrService {
     private final EmrRepository emrRepository;
     private final DocumentRepository documentRepository;
+    private final PatientDoctorRepository patientDoctorRepository;
     private final PublicPrivateService publicPrivateService;
     private final Path emrStorageLocation;
 
     @Autowired
     EmrService(EmrRepository emrRepository, DocumentRepository documentRepository,
-            DocumentStorageProperty documentStorageProperty, PublicPrivateService publicPrivateService) {
+            DocumentStorageProperty documentStorageProperty, PublicPrivateService publicPrivateService, PatientDoctorRepository patientDoctorRepository) {
         this.emrRepository = emrRepository;
         this.emrStorageLocation = Paths.get(documentStorageProperty.getUploadDirectory());
+        this.patientDoctorRepository = patientDoctorRepository;
         this.documentRepository = documentRepository;
         this.publicPrivateService = publicPrivateService;
     }
 
+    public boolean hasAccessToEmrByDoctorId(String emrID,User doctor)
+    {
+        UUID patientId=getPatientIdByEmrId(emrID);
+        UUID doctorID = doctor.getEmployeeId();
+        return patientDoctorRepository.existsByPatient_PatientIdAndDoctor_EmployeeId(patientId, doctorID);
+    }
     public ResponseEntity<?> getPrescriptionByEmrIdText(String publicEmrId) throws IOException {
         UUID emrId = publicPrivateService.privateIdByPublicId(publicEmrId);
         // Define the categories and corresponding file paths
@@ -619,6 +630,7 @@ public class EmrService {
     public UUID getPatientIdByEmrId(String EmrId) {
         UUID emrId = publicPrivateService.privateIdByPublicId(EmrId);
         return emrRepository.getPatientIdByEmrId(emrId);
+
     }
 
     // public ResponseEntity<?> getEmrByPatientId(UUID patientId) throws
