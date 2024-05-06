@@ -111,7 +111,7 @@ public class ConsultationController {
                 logService.addLog("ERROR", "GET: EMR by Patient and Doctor, ", null, patientPvtId);
                 return new ResponseEntity<>("Could not find EMR by doctor and patient"+ patientId +" "+doctorId, HttpStatus.NOT_FOUND);
             }
-            logService.addLog("APP", "Accessed EMR ID for consultation", null, null);
+            logService.addLog("APP", "Accessed EMR ID for consultation", null, patientPvtId);
             return ResponseEntity.ok(consultationService.getEmrIdByPatientIdAndDoctorId(patientPvtId, doctorPvtId));
         }catch (Exception e){
             if(patientPvtId!=null && doctorPvtId != null)
